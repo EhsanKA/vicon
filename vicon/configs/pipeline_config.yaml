@@ -1,0 +1,16 @@
+# step 0:
+vsearch:
+  fastx_uniques: "data/rsva/samples/RSVA_1973-2023-10.fasta"
+  fastaout: "data/rsva/samples/derep.fasta"
+  uc: "data/rsva/samples/clusters.uc"
+
+# step 1:
+ViralMSA:
+  e: "email@address.com"
+  s: "data/rsva/samples/derep.fasta"
+  o: "data/rsva/samples/aligned"
+  r: "data/rsva/reference/EPI_ISL_412866_RSVA_ref.fasta"
+
+# step 2:
+separate_samples: True
+# python separate_rsva.py
