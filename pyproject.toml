@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vicon"
+version = "0.1.0"
+description = "Virus conserved region extraction."
+readme = "README.md"
+requires-python = ">=3.10"
+# license = {file = "LICENSE.txt"}
+
+authors = [
+    {name = "Ehsan Karimiara", email = "e.karimiara@gmail.com" }
+    ]
+
+dependencies = []
+
+[tool.setuptools]
+packages = ["vicon"]
