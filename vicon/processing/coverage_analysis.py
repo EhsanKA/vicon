@@ -126,8 +126,26 @@ def process_coverage_chunk(args):
         results.append((i, j, len(set(kmer_indices[c1]).union(kmer_indices[c2]))))
     return results
 
-def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, n_processes=None):
-    """Finds best kmer pair using parallel processing."""
+def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatches=True ,n_processes=None):
+    """
+    Finds the best pair of kmers from a DataFrame using parallel processing.
+    This function evaluates all possible pairs of kmer columns in the input DataFrame (`ldf`)
+    to identify the pair that maximizes coverage (and optionally minimizes mismatches).
+    It leverages multiprocessing to speed up both the per-kmer and per-pair computations.
+    Args:
+        ldf (pd.DataFrame): DataFrame where each column represents a kmer.
+        fasta_file (str): Path to the FASTA file used for coverage analysis.
+        mask (np.ndarray or similar): Mask to apply during kmer processing.
+        window_size (int, optional): Window size for kmer analysis. Defaults to 150.
+        sort_by_mismatches (bool, optional): If True, sorts best pairs by coverage and then mismatches. Defaults to True.
+        n_processes (int or None, optional): Number of processes to use for parallelization. Defaults to all available CPUs.
+    Returns:
+        tuple: The names of the two best kmer columns (kmer1, kmer2) as strings.
+    Notes:
+        - Requires the helper functions `process_kmer_column` and `process_coverage_chunk` to be defined.
+        - The function prints timing and progress information to stdout.
+    """
+
     start_time = time.time()
     
     if n_processes is None:
@@ -177,7 +195,10 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, n_processes=None
     df_best = pd.DataFrame(data, columns=["kmer1", "kmer2", "cov1", "cov2", "mism1", "mism2"])
     df_best['sum_cov'] = df_best['cov1'] + df_best['cov2']
     df_best['sum_mism'] = df_best['mism1'] + df_best['mism2']
-    df_best = df_best.sort_values(['sum_cov', 'sum_mism'], ascending=[False, True])
+    if sort_by_mismatches:
+        df_best = df_best.sort_values(['sum_cov', 'sum_mism'], ascending=[False, True])
+    else:
+        df_best = df_best.sort_values('sum_cov', ascending=False)
     
     return df_best.iloc[0]['kmer1'], df_best.iloc[0]['kmer2']
 
