@@ -4,7 +4,6 @@ hist_size.py
 workflow.sh
 data/
 kmer_extract/
-covdif/
 test/
 results
 

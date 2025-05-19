@@ -128,3 +128,123 @@ def replace_hyphen_with_n(input_fasta, output_fasta):
         
     except Exception as e:
         print(f"An error occurred: {e}")
+
+
+
+from Bio import SeqIO
+import sys
+
+def check_fasta_non_atcg(fasta_path):
+    valid_chars = set("ATCG")
+    
+    with open(fasta_path, "r") as fasta_file:
+        lines = fasta_file.readlines()
+        for i in range(0, len(lines), 2):  # Process header and sequence pairs
+            header = lines[i].strip()
+            sequence = lines[i+1].strip().upper() if i+1 < len(lines) else ""
+            invalid_chars = set(sequence) - valid_chars
+            if invalid_chars:
+                print(f"{header} contains non-ATCG characters: {invalid_chars}")
+                break
+            else:
+                print(f"{header} is valid.")
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python check_fasta.py <fasta_file>")
+    else:
+        check_fasta_non_atcg(sys.argv[1])
+
+
+import os
+from pathlib import Path
+from Bio import SeqIO
+from Bio.Seq import Seq
+
+def process_fasta_content(content):
+    """
+    Process FASTA content:
+    - Convert sequences to uppercase
+    - Replace spaces and tabs in headers with underscores
+    
+    Args:
+        content (str): Raw FASTA content
+    Returns:
+        str: Processed FASTA content
+    """
+    lines = content.split('\n')
+    processed_lines = []
+    
+    for line in lines:
+        if line.startswith('>'):  # Header line
+            # Replace spaces and tabs with underscores
+            processed_lines.append(line.replace(' ', '_').replace('\t', '_'))
+        else:  # Sequence line
+            # Convert sequence to uppercase
+            processed_lines.append(line.upper())
+    
+    return '\n'.join(processed_lines)
+
+def combine_fasta_files(input_dir, output_file):
+    """
+    Combine multiple FASTA files from a directory into a single FASTA file.
+    
+    Args:
+        input_dir (str): Path to directory containing FASTA files
+        output_file (str): Path to output combined FASTA file
+    """
+    # Create output directory if it doesn't exist
+    output_path = Path(output_file)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Get all .fasta files from input directory
+    fasta_files = sorted([f for f in os.listdir(input_dir) if f.endswith('.fasta')])
+    
+    if not fasta_files:
+        print(f"No FASTA files found in {input_dir}")
+        return
+    
+    print(f"Found {len(fasta_files)} FASTA files")
+    
+    # Combine files
+    with open(output_file, 'w') as outfile:
+        for fasta_file in fasta_files:
+            input_path = os.path.join(input_dir, fasta_file)
+            print(f"Processing: {fasta_file}")
+            
+            with open(input_path, 'r') as infile:
+                # Read content, process it, and write to output file
+                content = infile.read()
+                processed_content = process_fasta_content(content)
+                outfile.write(processed_content)
+                # Add a newline between files if needed
+                outfile.write('\n')
+    
+    print(f"Combined FASTA file saved to: {output_file}")
+
+
+from Bio import SeqIO
+from Bio.Seq import Seq
+
+def process_fasta_file(input_file, output_file):
+    """
+    Process a FASTA file:
+    - Header: cleaned and preserved as the only identifier
+    - Sequence: uppercased, non-ATCG replaced with N
+    """
+    with open(output_file, "w") as out_handle:
+        for record in SeqIO.parse(input_file, "fasta"):
+            # 1. Clean the full header and assign to .id
+            clean_header = record.description.replace(" ", "_").replace("-", "_").replace("|", "_")
+            record.id = clean_header
+            record.name = ""  # Clear to avoid duplication
+            record.description = ""  # Clear to avoid appending to header
+            
+            # 2. Clean the sequence
+            seq_str = ''.join(['N' if c.upper() not in 'ATCG' else c.upper() for c in str(record.seq)])
+            record.seq = Seq(seq_str)
+            
+            # 3. Write to output file
+            SeqIO.write(record, out_handle, "fasta")
+
+

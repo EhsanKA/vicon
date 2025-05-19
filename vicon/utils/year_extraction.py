@@ -4,11 +4,26 @@ import re
 def extract_year(id_string):
     """
     Extracts the year from the sequence ID.
-    Assumes that the year is a 4-digit number following a pipe '|' in the ID.
+    Handles multiple formats:
+    1. Year after pipe or underscore: |2021 or _2021
+    2. Year in date format: DD-MON-YYYY
+    3. Year at the end of string: ...2021
     """
+    # Try to find year after pipe or underscore
     match = re.search(r'[|_](\d{4})\b', id_string)
     if match:
         return int(match.group(1))
+    
+    # Try to find year in date format (DD-MON-YYYY)
+    match = re.search(r'\d{2}-[A-Z]{3}-(\d{4})', id_string)
+    if match:
+        return int(match.group(1))
+    
+    # Try to find year at the end of string
+    match = re.search(r'(\d{4})(?:;|$)', id_string)
+    if match:
+        return int(match.group(1))
+    
     return None
 
 # Function to decide if the group should be kept or removed
@@ -87,13 +102,28 @@ def get_subsequences_with_years(df_samples, kmer_column):
     - subseq_to_years: Dictionary mapping subsequences to associated years.
     - subseq_freq: Counter object for the frequency of subsequences.
     """
+    if df_samples.empty:
+        raise ValueError("Input DataFrame is empty")
+    
+    if kmer_column not in df_samples.columns:
+        raise ValueError(f"Column '{kmer_column}' not found in DataFrame")
+    
     df_clean = df_samples[['ID', kmer_column]].dropna()
+    
+    if df_clean.empty:
+        raise ValueError(f"No valid data found after removing NaN values from columns ['ID', '{kmer_column}']")
 
     subseq_to_years = defaultdict(list)
+    valid_years = 0
+    
     for idx, row in df_clean.iterrows():
         year = extract_year(row['ID'])
         if year:
             subseq_to_years[row[kmer_column]].append(year)
+            valid_years += 1
+    
+    if valid_years == 0:
+        raise ValueError("No valid years could be extracted from the IDs")
     
     subseq_freq = Counter(df_clean[kmer_column])
     return subseq_to_years, subseq_freq

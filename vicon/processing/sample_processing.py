@@ -73,7 +73,8 @@ def pipeline_results_cleaner(sample_address='../data/rsva/samples/aligned/derep.
                              kmer_size= 150,
                              min_year=2020,
                              threshold_ratio=0.01,
-                             drop_mischar_samples=False
+                             drop_mischar_samples=False,
+                             return_droped_samples=False
                              ):
     
     df_samples = read_fasta_to_dataframe(sample_address)
@@ -89,12 +90,15 @@ def pipeline_results_cleaner(sample_address='../data/rsva/samples/aligned/derep.
 
     # Drop rows where 'year' is NaN (i.e., non-numerical entries were converted to NaN)
     print(f"df_samples shape before dropping NaN years: {df_samples.shape}")
+    df_samples_without_year = df_samples[df_samples['year'].isna()]
     df_samples = df_samples.dropna(subset=['year'])
     print(f"df_samples shape after dropping NaN years: {df_samples.shape}")
 
     ## Drop the samples containing Non ATCG chars in their kmer1 or kmer2
     # print(df_samples['kmer2'])
     if drop_mischar_samples:
+        df_sample_s_with_mischar = df_samples[df_samples['kmer1'].str.contains('[^ATCG]', regex=True) |
+                                              df_samples['kmer2'].str.contains('[^ATCG]', regex=True)]
         df_samples = df_samples[~df_samples['kmer1'].str.contains('[^ATCG]', regex=True) & 
                                 ~df_samples['kmer2'].str.contains('[^ATCG]', regex=True)]
         print(f"df_samples shape after dropping samples with non ATCG chars: {df_samples.shape}")
@@ -133,6 +137,9 @@ def pipeline_results_cleaner(sample_address='../data/rsva/samples/aligned/derep.
     df_kmers2 = process_kmers_to_dataframe(df_samples, 'kmer2')
     df_kmers2 = df_kmers2.sort_values(by=["e_year", "s_year"], ascending=[False, False])
 
-    return df_kmers1, df_kmers2
+    if return_droped_samples:
+        return df_kmers1, df_kmers2, df_samples_without_year, df_sample_s_with_mischar
+    else:
+        return df_kmers1, df_kmers2, df_samples
 
 

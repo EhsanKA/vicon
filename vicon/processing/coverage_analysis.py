@@ -4,7 +4,7 @@ from ..io.fasta import read_fasta_to_dataframe
 import itertools
 import numpy as np
 import pandas as pd
-
+import time
 
 def abundant_kmers(df):
     """
@@ -196,6 +196,7 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150):
       based on coverage and mismatches.
     """
 
+    start_time = time.time()
     # Find abundant kmers in ldf after the coverage threshold
     kmer_dict = dict()
     for c in ldf.columns:
@@ -204,6 +205,9 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150):
         kmer_dict[c]['coverage'] = coverage
         kmer_dict[c]['indices'] = seq_indices
         kmer_dict[c]['mismatches'] = min_value
+
+    elapsed_time = time.time() - start_time
+    print(f"Computation time for kmer_dict loop: {elapsed_time:.2f} seconds")
 
 
     # Build the coverage table
@@ -240,3 +244,66 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150):
     df_best_kmers = df_best_kmers.sort_values(by=["sum_coverage", "sum_mismatches"], ascending=[False, True])
 
     return df_best_kmers.iloc[0]['kmer1'], df_best_kmers.iloc[0]['kmer2']
+
+
+def calculate_kmer_coverage(ldf, fasta_file, mask, kmer1, kmer2, window_size=150):
+    """
+    Calculate coverage for a pair of kmers using the same method as find_best_pair_kmer.
+    
+    Parameters:
+    -----------
+    ldf : pandas.DataFrame
+        DataFrame containing sequence data
+    fasta_file : str
+        Path to the FASTA file
+    mask : numpy.ndarray
+        Mask array for filtering sequences
+    kmer1 : int
+        Position of first kmer
+    kmer2 : int
+        Position of second kmer
+    window_size : int, optional
+        Size of the kmers to analyze (default: 150)
+    
+    Returns:
+    --------
+    int
+        Number of sequences that have both kmers at their respective positions
+    """
+    # Get coverage and indices for each kmer using the same method as find_best_pair_kmer
+    coverage1, indices1, _ = count_seq_coverage(kmer1, fasta_file, mask, window_size=window_size)
+    coverage2, indices2, _ = count_seq_coverage(kmer2, fasta_file, mask, window_size=window_size)
+    
+    # Calculate union of indices (same as in find_best_pair_kmer)
+    union_indices = set(indices1).union(set(indices2))
+    
+    return len(union_indices)
+
+def find_kmer_position(df_ref, kmer_sequence, window_size=150):
+    """
+    Find the position of a kmer sequence in the reference sequence.
+    
+    Parameters:
+    -----------
+    df_ref : pandas.DataFrame
+        DataFrame containing the reference sequence
+    kmer_sequence : str
+        The kmer sequence to find
+    window_size : int, optional
+        Size of the kmers (default: 150)
+    
+    Returns:
+    --------
+    int or None
+        Position of the kmer sequence in the reference sequence, or None if not found
+    """
+    # Read reference sequence
+
+    ref_seq = df_ref['Sequence'].values[0]
+    
+    # Search for the kmer sequence
+    for i in range(len(ref_seq) - window_size + 1):
+        if ref_seq[i:i+window_size] == kmer_sequence:
+            return i
+    
+    return None

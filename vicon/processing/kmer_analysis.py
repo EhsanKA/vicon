@@ -77,9 +77,18 @@ def process_kmers_to_dataframe(df_samples, kmer_column):
     Returns:
     - df_kmers: A Pandas DataFrame with Seq_ID, year range, percentage, alignment, and changes.
     """
-    # print(f"{df_samples.shape} df_samples shape.")
+    if df_samples.empty:
+        raise ValueError("Input DataFrame is empty")
+    
+    if kmer_column not in df_samples.columns:
+        raise ValueError(f"Column '{kmer_column}' not found in DataFrame")
+    
     subseq_to_years, subseq_freq = get_subsequences_with_years(df_samples, kmer_column)
     sorted_subsequences = get_sorted_subsequences(subseq_freq)
+    
+    if not sorted_subsequences:
+        raise ValueError(f"No valid subsequences found in column '{kmer_column}'. Check if the data contains valid sequences and years.")
+    
     most_frequent_subseq = sorted_subsequences[0][0]
     total_subsequences = sum(subseq_freq.values())
 
