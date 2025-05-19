@@ -1,15 +1,14 @@
 from ..utils.helpers import find_min_coverage_threshold
 from ..io.fasta import read_fasta_to_dataframe
-
 import itertools
 import numpy as np
 import pandas as pd
 import time
+from multiprocessing import Pool, cpu_count
+from collections import Counter
 
 def abundant_kmers(df):
-    """
-    Finds abundant kmers and the samples covering them.
-    """
+    """Finds abundant kmers and the samples covering them."""
     print("Finding abundant kmers...")
     data = df.copy()
     output = dict()
@@ -30,9 +29,7 @@ def abundant_kmers(df):
     return output, samples
 
 def crop_df(df, start, end, coverage_ratio=0.5):
-    """
-    Crops the DataFrame to the specified gene region and coverage threshold.
-    """
+    """Crops the DataFrame to the specified gene region and coverage threshold."""
     ldf = limit_to_l_gene(df, start, end)
     min_coverage = find_min_coverage_threshold(ldf, coverage_ratio)
     ldf = ldf.loc[:, ldf.sum() > min_coverage]
@@ -40,17 +37,13 @@ def crop_df(df, start, end, coverage_ratio=0.5):
     return ldf
 
 def limit_to_l_gene(df, start, end):
-    """
-    Limits the DataFrame to the specified gene region.
-    """
+    """Limits the DataFrame to the specified gene region."""
     print(f"Limiting DataFrame to gene region from position {start} to {end}")
     ldf = df.loc[:, (df.columns >= start) & (df.columns <= end)]
     return ldf
 
 def build_coverage_table(ldf):
-    """
-    Builds a coverage table for combinations of kmers.
-    """
+    """Builds a coverage table for combinations of kmers."""
     print("Building coverage table for kmers...")
     data = ldf.values
     column_names = ldf.columns.tolist()
@@ -78,9 +71,7 @@ def build_coverage_table(ldf):
     return coverage_df
 
 def top_kmers_df(cov_df):
-    """
-    Returns the top kmers based on maximum union_sum and total coverage.
-    """
+    """Returns the top kmers based on maximum union_sum and total coverage."""
     max_union_sum = cov_df['union_sum'].max()
     sub_df = cov_df[cov_df['union_sum'] == max_union_sum]
     max_total_cov = sub_df['k1_cov_plus_k2_cov'].max()
@@ -88,46 +79,107 @@ def top_kmers_df(cov_df):
     print(f"Top kmers found covering {max_union_sum} samples with total coverage {max_total_cov}")
     return sub_df
 
-
-from collections import Counter
-
 def find_most_frequent_and_calculate_mismatches(sequences):
-    """
-    Finds the most frequent sequence and calculates the total sum of mismatches
-    of all other sequences from the most frequent sequence.
-
-    Parameters:
-        sequences (list of str): A list of DNA sequences.
-
-    Returns:
-        tuple: A tuple containing:
-            - most_frequent (str): The most frequent sequence.
-            - total_mismatches (int): The total sum of mismatches of other sequences from the most frequent one.
-    """    
-    
-    # Find the most frequent sequence
+    """Finds the most frequent sequence and calculates mismatches."""
     sequence_counts = Counter(sequences)
     most_frequent = sequence_counts.most_common(1)[0][0]
-    
-    # Calculate mismatches
-    total_mismatches = 0
-    for seq in sequences:
-        if len(seq) != len(most_frequent):
-            raise ValueError("All sequences must have the same length.")
-        mismatches = sum(1 for a, b in zip(seq, most_frequent) if a != b)
-        total_mismatches += mismatches
-
-    # print(f"total_mismatches: {total_mismatches}")
-
+    total_mismatches = sum(1 for seq in sequences 
+                          for a, b in zip(seq, most_frequent) if a != b)
     return most_frequent, total_mismatches
-
 
 def get_i_th_kmers(fasta_file, i, mask, window_size=150):
     df = read_fasta_to_dataframe(fasta_file)
     df = df.iloc[mask[:, i].astype(bool)] 
     df['kmer'] = df['Sequence'].str.slice(i, i + window_size)
+    return df['kmer'].values, df['ID'].values
 
-    return  df['kmer'].values, df['ID'].values
+def count_sequences_with_max_mismatches(sequences, ids, most_frequent, max_mismatches=3):
+    """Counts sequences with <= max_mismatches compared to most_frequent."""
+    count = 0
+    seq_indices = []
+    for seq, i in zip(sequences, ids):
+        mismatches = sum(1 for a, b in zip(seq, most_frequent) if a != b)
+        if mismatches <= max_mismatches:
+            count += 1
+            seq_indices.append(i)
+    return count, seq_indices
+
+def count_seq_coverage(kmer_index, fasta_file, mask, window_size=150):
+    seqs, ids = get_i_th_kmers(fasta_file, kmer_index, mask, window_size)
+    most_freq, min_value = find_most_frequent_and_calculate_mismatches(seqs)
+    coverage, seq_indices = count_sequences_with_max_mismatches(seqs, ids, most_freq, 3)
+    return coverage, seq_indices, min_value
+
+def process_kmer_column(args):
+    """Process single kmer column in parallel."""
+    c, fasta_file, mask, window_size = args
+    coverage, seq_indices, min_value = count_seq_coverage(c, fasta_file, mask, window_size)
+    return (c, {'coverage': coverage, 'indices': seq_indices, 'mismatches': min_value})
+
+def process_coverage_chunk(args):
+    """Process chunk of coverage matrix in parallel."""
+    chunk_indices, columns, kmer_indices = args
+    results = []
+    for i, j in chunk_indices:
+        c1 = columns[i]
+        c2 = columns[j]
+        results.append((i, j, len(set(kmer_indices[c1]).union(kmer_indices[c2]))))
+    return results
+
+def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, n_processes=None):
+    """Finds best kmer pair using parallel processing."""
+    start_time = time.time()
+    
+    if n_processes is None:
+        n_processes = cpu_count()
+        print(f"Using {n_processes} processes")
+
+    # Parallel process kmer_dict
+    with Pool(n_processes) as pool:
+        args = [(c, fasta_file, mask, window_size) for c in ldf.columns]
+        results = pool.map(process_kmer_column, args)
+    
+    kmer_dict = dict(results)
+    print(f"Kmer dict computed in {time.time()-start_time:.2f}s")
+    
+    # Extract just the indices for parallel processing
+    kmer_indices = {k: v['indices'] for k, v in kmer_dict.items()}
+    columns = ldf.columns
+    n = len(columns)
+    cov = np.zeros((n, n))
+    
+    # Split work into chunks
+    indices = [(i, j) for i in range(n) for j in range(i, n)]
+    chunk_size = max(1, len(indices) // (n_processes * 4))  # 4 chunks per core
+    chunks = [indices[i:i+chunk_size] for i in range(0, len(indices), chunk_size)]
+    
+    # Process chunks in parallel
+    with Pool(n_processes) as pool:
+        results = pool.map(process_coverage_chunk, 
+                         [(chunk, columns, kmer_indices) for chunk in chunks])
+    
+    # Combine results
+    for chunk_results in results:
+        for i, j, value in chunk_results:
+            cov[i, j] = value
+    
+    print(f"Coverage matrix computed in {time.time()-start_time:.2f}s")
+    
+    # Find and return best pair
+    pairs = np.argwhere(cov == cov.max())
+    data = [[columns[p[0]], columns[p[1]], 
+             kmer_dict[columns[p[0]]]['coverage'],
+             kmer_dict[columns[p[1]]]['coverage'],
+             kmer_dict[columns[p[0]]]['mismatches'],
+             kmer_dict[columns[p[1]]]['mismatches']] 
+            for p in pairs]
+    
+    df_best = pd.DataFrame(data, columns=["kmer1", "kmer2", "cov1", "cov2", "mism1", "mism2"])
+    df_best['sum_cov'] = df_best['cov1'] + df_best['cov2']
+    df_best['sum_mism'] = df_best['mism1'] + df_best['mism2']
+    df_best = df_best.sort_values(['sum_cov', 'sum_mism'], ascending=[False, True])
+    
+    return df_best.iloc[0]['kmer1'], df_best.iloc[0]['kmer2']
 
 
 def select_best_kmers(fasta_file, mask, kmer_set, set2, window_size=150):
@@ -156,94 +208,6 @@ def select_best_kmers(fasta_file, mask, kmer_set, set2, window_size=150):
     best_kmer2, min_kmer2, max_coverage2 = find_min_mismatch_and_max_coverage(set2, fasta_file, mask, window_size=window_size)
     print(f"Best kmer2: {best_kmer2}, min_kmer2: {min_kmer2}, max_coverage2: {max_coverage2}")
     return best_kmer1, best_kmer2
-
-
-def count_sequences_with_max_mismatches(sequences, ids, most_frequent, max_mismatches=3):
-    """
-    Counts the number of sequences that have at most a specified number of mismatches
-    compared to the most frequent sequence.
-
-    Parameters:
-        sequences (list of str): A list of DNA sequences.
-        most_frequent (str): The most frequent sequence in the list.
-        max_mismatches (int): The maximum number of allowed mismatches.
-
-    Returns:
-        int: The count of sequences with mismatches <= max_mismatches.
-    """
-    count = 0
-    seq_indices = []
-    for seq, i in zip(sequences, ids):
-        # Count mismatches using zip
-        mismatches = sum(1 for a, b in zip(seq, most_frequent) if a != b)
-        if mismatches <= max_mismatches:
-            count += 1
-            seq_indices.append(i)
-
-    return count, seq_indices
-
-
-def count_seq_coverage(kmer_index, fasta_file, mask, window_size=150):
-    seqs, ids = get_i_th_kmers(fasta_file, kmer_index, mask, window_size=window_size)
-    most_freq, min_value = find_most_frequent_and_calculate_mismatches(seqs)
-    coverage, seq_indices = count_sequences_with_max_mismatches(seqs, ids, most_freq, max_mismatches=3)
-    return coverage, seq_indices, min_value
-
-
-def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150):
-    """
-    Finds the best pair of kmers using the most frequent sequences in each position
-      based on coverage and mismatches.
-    """
-
-    start_time = time.time()
-    # Find abundant kmers in ldf after the coverage threshold
-    kmer_dict = dict()
-    for c in ldf.columns:
-        kmer_dict[c] = dict()
-        coverage, seq_indices, min_value = count_seq_coverage(c, fasta_file, mask, window_size=window_size)
-        kmer_dict[c]['coverage'] = coverage
-        kmer_dict[c]['indices'] = seq_indices
-        kmer_dict[c]['mismatches'] = min_value
-
-    elapsed_time = time.time() - start_time
-    print(f"Computation time for kmer_dict loop: {elapsed_time:.2f} seconds")
-
-
-    # Build the coverage table
-    cov = np.zeros((len(ldf.columns), len(ldf.columns)))
-    for i, c in enumerate(ldf.columns):
-        for j, c2 in enumerate(ldf.columns):
-            if i <= j:
-                cov[i,j] = list(set(kmer_dict[c]['indices']).union(kmer_dict[c2]['indices'])).__len__()
-
-    # Find the pair with the maximum coverage
-    pairs = np.argwhere(cov == cov.max())
-    print(f"Max coverage with 2 kmers: {cov.max()/ldf.shape[0]}")
-
-    # Create the data for the DataFrame of the best kmers
-    data = []
-    for pair in pairs:
-        kmer1 = ldf.columns[pair[0]]
-        kmer2 = ldf.columns[pair[1]]
-
-        # Extract values from kmer_dict
-        coverage_k1 = kmer_dict[kmer1]["coverage"]
-        coverage_k2 = kmer_dict[kmer2]["coverage"]
-        mismatches_k1 = kmer_dict[kmer1]["mismatches"]
-        mismatches_k2 = kmer_dict[kmer2]["mismatches"]
-
-        # Append row to data
-        data.append([kmer1, kmer2, coverage_k1, coverage_k2, mismatches_k1, mismatches_k2])
-
-    # Create the DataFrame
-    df_best_kmers = pd.DataFrame(data, columns=["kmer1", "kmer2", "coverage_k1", "coverage_k2", "mismatches_k1", "mismatches_k2"])
-    df_best_kmers['sum_coverage'] = df_best_kmers['coverage_k1'] + df_best_kmers['coverage_k2']
-    df_best_kmers['sum_mismatches'] = df_best_kmers['mismatches_k1'] + df_best_kmers['mismatches_k2']
-
-    df_best_kmers = df_best_kmers.sort_values(by=["sum_coverage", "sum_mismatches"], ascending=[False, True])
-
-    return df_best_kmers.iloc[0]['kmer1'], df_best_kmers.iloc[0]['kmer2']
 
 
 def calculate_kmer_coverage(ldf, fasta_file, mask, kmer1, kmer2, window_size=150):
@@ -307,3 +271,4 @@ def find_kmer_position(df_ref, kmer_sequence, window_size=150):
             return i
     
     return None
+    
