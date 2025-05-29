@@ -29,7 +29,7 @@ def plot_non_gap_counts(df_counts, title='Non-Gap Character Counts at Each Posit
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_rel_cons(df, kmer_size=150, threshold=3):
+def plot_rel_cons(df, kmer_size=150, threshold=3, save_path='.'):
     
     # Assuming df has columns 'position', 'value_relaxed', and 'value_other'
     x = df.columns.values.flatten()
@@ -61,7 +61,7 @@ def plot_rel_cons(df, kmer_size=150, threshold=3):
     # Add a legend
     plt.legend()
 
-    # plt.savefig(f'Comparison_of_Conservative_frequencies_{SAMPLE_NAME}_{KMER_SIZE}.png', dpi=300)
+    plt.savefig(f'{save_path}/Histogram_of_the_kmer_coverage_{SAMPLE_NAME}_{kmer_size}.png', dpi=300)
     
     # Display the plot
     plt.show()

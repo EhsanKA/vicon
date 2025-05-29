@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import yaml
 
 
 
@@ -247,4 +248,12 @@ def process_fasta_file(input_file, output_file):
             # 3. Write to output file
             SeqIO.write(record, out_handle, "fasta")
 
+def filter_by_most_common_kmers(df):
+    kmer1_most = df['kmer1'].mode()[0]
+    kmer2_most = df['kmer2'].mode()[0]
+    filtered_df = df[(df['kmer1'] == kmer1_most) | (df['kmer2'] == kmer2_most)].copy()
+    return filtered_df, kmer1_most, kmer2_most
 
+def load_config(config_path="config.yaml"):
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
