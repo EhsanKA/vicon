@@ -1,20 +1,32 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "vicon"
 version = "0.1.0"
-description = "Virus conserved region extraction."
+description = "VICON - Viral Conserved Sequence Extraction Toolkit"
 readme = "README.md"
-requires-python = ">=3.10"
-# license = {file = "LICENSE.txt"}
+license = {text = "MIT"}
+homepage = "https://github.com/EhsanKA/vicon"
+requires-python = ">=3.7"
 
 authors = [
     {name = "Ehsan Karimiara", email = "e.karimiara@gmail.com" }
-    ]
+]
 
-dependencies = []
+[project.dependencies]
+numpy = "*"
+pandas = "*"
+matplotlib = "*"
+vsearch = "*"
+
+[project.scripts]
+vicon-run = "run_pipeline:main"
 
 [tool.setuptools]
 packages = ["vicon"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+vicon = ["scripts/viralmsa.py"]

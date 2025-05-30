@@ -53,7 +53,7 @@ def main():
 
     input_sample = os.path.join(base_path, config["input_sample"])
     input_reference = os.path.join(base_path, config["input_reference"])
-    viralmsa_path = os.path.join(base_path, "scripts/ViralMSA.py")
+    viralmsa_path = os.path.join(base_path, "vicon/scripts/ViralMSA.py")
     output_dir = os.path.join(base_path, "results", virus)
 
     sample_dir = os.path.dirname(input_sample)

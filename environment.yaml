@@ -9,3 +9,4 @@ dependencies:
   - conda-forge::openpyxl
   - conda-forge::pandas
   - python=3.11.8
+  - bioconda::minimap2

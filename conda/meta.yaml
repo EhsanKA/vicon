@@ -1,0 +1,25 @@
+package:
+  name: vicon
+  version: 0.1.0
+
+source:
+  path: .
+
+build:
+  noarch: python
+  script: pip install .
+
+requirements:
+  build:
+    - python >=3.11
+    - pip
+  run:
+    - python >=3.11
+    - pandas
+    - matplotlib
+    - vsearch
+
+about:
+  home: https://github.com/EhsanKA/vicon
+  license: MIT
+  summary: "VICON - Viral Conserved Sequence Extraction Toolkit"
