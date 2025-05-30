@@ -39,7 +39,6 @@ VICON is a Python package for processing and analyzing viral sequence data, with
       ```bash
       cd scripts/
       curl -L https://github.com/lh3/minimap2/releases/download/v2.28/minimap2-2.28_x64-linux.tar.bz2 | tar -jxvf -
-      <!-- ./minimap2-2.28_x64-linux/minimap2 -->
       cd ../
       ```
       Consider running the following command before the execution each time or add it to your `.bashrc`:
