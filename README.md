@@ -27,21 +27,33 @@ VICON is a Python package for processing and analyzing viral sequence data, with
    conda activate vicon
    ```
 
+3. Dependencies:
+   - ViralMSA:
+      ```bash
+      mkdir -p scripts && cd scripts
+      wget "https://github.com/niemasd/ViralMSA/releases/latest/download/ViralMSA.py"
+      chmod a+x ViralMSA.py
+      cd ../
+      ```
+   - minimap2:
+      ```bash
+      cd scripts/
+      curl -L https://github.com/lh3/minimap2/releases/download/v2.28/minimap2-2.28_x64-linux.tar.bz2 | tar -jxvf -
+      <!-- ./minimap2-2.28_x64-linux/minimap2 -->
+      cd ../
+      ```
+      Consider running the following command before the execution each time or add it to your `.bashrc`:
+      ```bash
+      export PATH="$PWD/scripts/minimap2-2.28_x64-linux:$PATH"
+      ```
+   - Vsearch:
+      ```bash
+      conda install bioconda::vsearch
+      ```
+
 3. Install the package:
    ```bash
    pip install -e .
-   ```
-
-### Docker Installation
-
-1. Build the Docker image:
-   ```bash
-   docker build -t vicon .
-   ```
-
-2. Run the container:
-   ```bash
-   docker run -it vicon
    ```
 
 ## Usage

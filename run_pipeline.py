@@ -1,3 +1,7 @@
+## How to run??
+#### python run_pipeline.py --config configs/config_rsva.yaml
+
+
 import os
 import shutil
 import pandas as pd

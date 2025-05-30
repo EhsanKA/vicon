@@ -1,4 +1,5 @@
-#! /usr/bin/env python3
+# This file is downloaded from https://github.com/niemasd/ViralMSA 
+
 '''
 ViralMSA: Reference-guided multiple sequence alignment of viral genomes
 '''
