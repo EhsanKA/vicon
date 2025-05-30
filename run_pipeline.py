@@ -23,7 +23,7 @@ from vicon.utils.helpers import (
 def setup_alignment_directory(aligned_dir):
     if os.path.exists(aligned_dir):
         shutil.rmtree(aligned_dir)
-    os.makedirs(aligned_dir)
+    # os.makedirs(aligned_dir)
 
 
 def extract_kmer_sequences(reference_path, kmer1, kmer2, kmer_size):
@@ -48,7 +48,8 @@ def main():
 
 
     # Paths and Constants
-    base_path = os.path.join(config["project_path"], "vicon")
+    # base_path = os.path.join(config["project_path"], "vicon")
+    base_path = config["project_path"]
     virus = config["virus_name"]
 
     input_sample = os.path.join(base_path, config["input_sample"])
@@ -63,7 +64,7 @@ def main():
     derep_fasta_aln = os.path.join(aligned_dir, "derep.fasta.aln")
     kmer1_path = os.path.join(output_dir, "kmer1.csv")
     kmer2_path = os.path.join(output_dir, "kmer2.csv")
-    # log_dir = os.path.join(output_dir, "logs")
+    log_dir = os.path.join(output_dir, "logs")
 
     email = config["email"]
     kmer_size = config["kmer_size"]
@@ -74,6 +75,7 @@ def main():
 
     # Setup
     print(f"[INFO] Using base path: {base_path}")
+    print(f"aligned_dir: {aligned_dir}")
     setup_alignment_directory(aligned_dir)
 
     # Dereplication and Alignment
@@ -96,7 +98,7 @@ def main():
     )
     df3.columns = df3.columns.astype(int)
 
-    plot_rel_cons(df3, kmer_size=kmer_size, threshold=kmer_size-threshold, save_path=output_dir)
+    plot_rel_cons(df3, kmer_size=kmer_size, threshold=kmer_size-threshold, save_path=output_dir, sample_name=virus)
 
     # L-gene region crop and kmer detection
     ldf = crop_df(df3, l_gene_start, l_gene_end, coverage_ratio=coverage_ratio)

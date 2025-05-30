@@ -18,7 +18,8 @@ dependencies = [
     "numpy>=1.24",
     "pandas",
     "matplotlib",
-    "vsearch"
+    "vsearch",
+    "pyyaml"
 ]
 
 [project.urls]

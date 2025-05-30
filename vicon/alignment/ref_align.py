@@ -17,7 +17,7 @@ def run_viralmsa(sample_fasta, output_dir, reference_fasta, email='email@address
         "-e", email,
         "-s", sample_fasta,
         "-o", output_dir,
-        "-r", reference_fasta
+        "-r", reference_fasta,
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:

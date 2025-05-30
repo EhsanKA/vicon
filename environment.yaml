@@ -1,7 +1,8 @@
-name: vicon
+name: vicon-test
 channels:
   - conda-forge
 dependencies:
+  - bioconda::minimap2
   - bioconda::vsearch
   - conda-forge::biopython
   - conda-forge::ipykernel
@@ -9,4 +10,4 @@ dependencies:
   - conda-forge::openpyxl
   - conda-forge::pandas
   - python=3.11.8
-  - bioconda::minimap2
+  - conda-forge::pyyaml
