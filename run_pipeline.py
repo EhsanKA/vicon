@@ -54,7 +54,6 @@ def main():
 
     input_sample = os.path.join(base_path, config["input_sample"])
     input_reference = os.path.join(base_path, config["input_reference"])
-    viralmsa_path = os.path.join(base_path, "vicon/scripts/ViralMSA.py")
     output_dir = os.path.join(base_path, "results", virus)
 
     sample_dir = os.path.dirname(input_sample)
@@ -86,7 +85,6 @@ def main():
         sample_fasta=derep_fasta,
         output_dir=aligned_dir,
         reference_fasta=input_reference,
-        script_path=viralmsa_path
     )
 
     remove_first_record(derep_fasta_aln, derep_fasta_aln)

@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-def run_viralmsa(sample_fasta, output_dir, reference_fasta, email='email@address.com',  script_path = "scripts/ViralMSA.py"):
+def run_viralmsa(sample_fasta, output_dir, reference_fasta, email='email@address.com'):
     """
     Runs the ViralMSA script for multiple sequence alignment.
     
@@ -13,7 +13,7 @@ def run_viralmsa(sample_fasta, output_dir, reference_fasta, email='email@address
     """
 
     cmd = [
-        "python", script_path,
+        "viralmsa",
         "-e", email,
         "-s", sample_fasta,
         "-o", output_dir,
