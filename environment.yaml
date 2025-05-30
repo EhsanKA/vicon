@@ -1,4 +1,4 @@
-name: vi_environment
+name: vicon
 channels:
   - conda-forge
 dependencies:
