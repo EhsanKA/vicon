@@ -3,18 +3,22 @@ package:
   version: 0.1.0
 
 source:
-  path: .
+  path: ..
 
 build:
   noarch: python
-  script: pip install .
+  script: |
+    pip install .
+    install -Dm755 vicon/scripts/ViralMSA.py $PREFIX/bin/viralmsa
 
 requirements:
   build:
     - python >=3.11
     - pip
+    - setuptools
   run:
     - python >=3.11
+    - numpy 
     - pandas
     - matplotlib
     - vsearch

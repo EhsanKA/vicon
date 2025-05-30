@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,18 +8,21 @@ version = "0.1.0"
 description = "VICON - Viral Conserved Sequence Extraction Toolkit"
 readme = "README.md"
 license = {text = "MIT"}
-homepage = "https://github.com/EhsanKA/vicon"
 requires-python = ">=3.7"
 
 authors = [
     {name = "Ehsan Karimiara", email = "e.karimiara@gmail.com" }
 ]
 
-[project.dependencies]
-numpy = "*"
-pandas = "*"
-matplotlib = "*"
-vsearch = "*"
+dependencies = [
+    "numpy>=1.24",
+    "pandas",
+    "matplotlib",
+    "vsearch"
+]
+
+[project.urls]
+Homepage = "https://github.com/EhsanKA/vicon"
 
 [project.scripts]
 vicon-run = "run_pipeline:main"
@@ -30,3 +33,6 @@ include-package-data = true
 
 [tool.setuptools.package-data]
 vicon = ["scripts/viralmsa.py"]
+
+[tool.setuptools.data-files]
+"bin" = ["vicon/scripts/ViralMSA.py"]
