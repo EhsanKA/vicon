@@ -5,7 +5,9 @@ workflow.sh
 data/
 kmer_extract/
 test/
-results
+results/
+notebooks/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

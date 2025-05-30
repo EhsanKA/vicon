@@ -63,7 +63,7 @@ def main():
     derep_fasta_aln = os.path.join(aligned_dir, "derep.fasta.aln")
     kmer1_path = os.path.join(output_dir, "kmer1.csv")
     kmer2_path = os.path.join(output_dir, "kmer2.csv")
-    log_dir = os.path.join(output_dir, "logs")
+    # log_dir = os.path.join(output_dir, "logs")
 
     email = config["email"]
     kmer_size = config["kmer_size"]
