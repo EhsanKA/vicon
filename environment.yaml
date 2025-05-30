@@ -1,13 +1,11 @@
-name: vicon
+name: vi_environment
 channels:
   - conda-forge
-  - bioconda
 dependencies:
-  - python=3.11.8
   - bioconda::vsearch
-  - bioconda::minimap2
-  - conda-forge::matplotlib
-  - conda-forge::ipykernel
-  - conda-forge::pandas
   - conda-forge::biopython
+  - conda-forge::ipykernel
+  - conda-forge::matplotlib
   - conda-forge::openpyxl
+  - conda-forge::pandas
+  - python=3.11.8
