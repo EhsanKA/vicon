@@ -58,13 +58,13 @@ vicon-run --config path/to/your/config.yaml
 Here's an example of what your configuration file (`config.yaml`) should look like:
 
 ```yaml
-project_path: "my_projects/vicon/"
-virus_name: "rsva_algo1_python"
-input_sample: "data/rsva/samples/RSVA_1973-2023-10.fasta"
-input_reference: "data/rsva/reference/EPI_ISL_412866_RSVA_ref.fasta"
+project_path: "project_path"
+virus_name: "orov"
+input_sample: "data/orov/samples/samples.fasta"
+input_reference: "data/orov/reference/reference.fasta"
 email: "email@address.com"
 kmer_size: 150
-threshold: 147
+threshold: 147 # shows a tolerance of 150-147 =3 degenerations
 l_gene_start: 8000
 l_gene_end: 16000
 coverage_ratio: 0.5
