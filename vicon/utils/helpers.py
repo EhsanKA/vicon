@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import yaml
+import os
 
 
 
@@ -251,8 +252,32 @@ def process_fasta_file(input_file, output_file):
 def filter_by_most_common_kmers(df):
     kmer1_most = df['kmer1'].mode()[0]
     kmer2_most = df['kmer2'].mode()[0]
+    kmer1_count = df['kmer1'].value_counts().get(kmer1_most, 0)
+    kmer2_count = df['kmer2'].value_counts().get(kmer2_most, 0)
     filtered_df = df[(df['kmer1'] == kmer1_most) | (df['kmer2'] == kmer2_most)].copy()
-    return filtered_df, kmer1_most, kmer2_most
+    return filtered_df, kmer1_most, kmer2_most, kmer1_count, kmer2_count
+
+def create_results_dir(config):
+    """
+    Creates the results directory structure for the pipeline.
+    
+    Args:
+        config (dict): Configuration dictionary containing project settings
+        
+    Returns:
+        str: Path to the results directory
+    """
+    base_path = config["project_path"]
+    virus = config["virus_name"]
+    results_dir = os.path.join(base_path, "results", virus)
+    
+    # Create the results directory if it doesn't exist
+    os.makedirs(results_dir, exist_ok=True)
+    
+    # Create subdirectories
+    os.makedirs(os.path.join(results_dir, "logs"), exist_ok=True)
+    
+    return results_dir
 
 def load_config(config_path="config.yaml"):
     with open(config_path, "r") as f:

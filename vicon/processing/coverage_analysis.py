@@ -183,22 +183,33 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatch
     
     print(f"Coverage matrix computed in {time.time()-start_time:.2f}s")
     
-    # Find and return best pair
-    pairs = np.argwhere(cov == cov.max())
-    data = [[columns[p[0]], columns[p[1]], 
-             kmer_dict[columns[p[0]]]['coverage'],
-             kmer_dict[columns[p[1]]]['coverage'],
-             kmer_dict[columns[p[0]]]['mismatches'],
-             kmer_dict[columns[p[1]]]['mismatches']] 
-            for p in pairs]
-    
-    df_best = pd.DataFrame(data, columns=["kmer1", "kmer2", "cov1", "cov2", "mism1", "mism2"])
+    # Get all pairs and their unique coverage
+    pair_indices = [(i, j) for i in range(n) for j in range(i, n)]
+    data = []
+    for i, j in pair_indices:
+        unique_cov = int(cov[i, j])
+        data.append([
+            columns[i], columns[j],
+            kmer_dict[columns[i]]['coverage'],
+            kmer_dict[columns[j]]['coverage'],
+            kmer_dict[columns[i]]['mismatches'],
+            kmer_dict[columns[j]]['mismatches'],
+            unique_cov
+        ])
+
+    df_best = pd.DataFrame(data, columns=["kmer1", "kmer2", "cov1", "cov2", "mism1", "mism2", "unique_cov"])
     df_best['sum_cov'] = df_best['cov1'] + df_best['cov2']
     df_best['sum_mism'] = df_best['mism1'] + df_best['mism2']
-    if sort_by_mismatches:
-        df_best = df_best.sort_values(['sum_cov', 'sum_mism'], ascending=[False, True])
-    else:
-        df_best = df_best.sort_values('sum_cov', ascending=False)
+
+    # Sort by unique coverage first, then sum_cov, then mismatches
+    df_best = df_best.sort_values(['unique_cov', 'sum_cov', 'sum_mism'], ascending=[False, False, True])
+
+    # Take the top 1000 pairs
+    df_best = df_best.head(1000)
+
+    print(f"[INFO] Degenerate Kmer1 Coverage: {df_best.iloc[0]['cov1']}")
+    print(f"[INFO] Degenerate Kmer2 Coverage: {df_best.iloc[0]['cov2']}")
+    print(f"[INFO] Overall Degenerate Coverage: {df_best.iloc[0]['sum_cov']}")
     
     return df_best.iloc[0]['kmer1'], df_best.iloc[0]['kmer2']
 

@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vicon"
-version = "0.1.0"
+version = "0.2.4"
 description = "VICON - Viral Conserved Sequence Extraction Toolkit"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.7"
 
 authors = [
@@ -26,10 +26,18 @@ dependencies = [
 Homepage = "https://github.com/EhsanKA/vicon"
 
 [project.scripts]
-vicon-run = "run_pipeline:main"
+vicon-run = "vicon.run_pipeline:main"
 
 [tool.setuptools]
-packages = ["vicon"]
+packages = [
+    "vicon",
+    "vicon.dereplication",
+    "vicon.alignment",
+    "vicon.processing",
+    "vicon.visualization",
+    "vicon.io",
+    "vicon.utils"
+]
 include-package-data = true
 
 [tool.setuptools.package-data]

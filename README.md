@@ -47,9 +47,32 @@ VICON is a Python package for processing and analyzing viral sequence data, with
 
 ## Usage
 
+To run the VICON pipeline, use the following command:
+
 ```bash
-   python run_pipeline.py --config configs/config_rsva.yaml
-   ```
+vicon-run --config path/to/your/config.yaml
+```
+
+### Example Configuration
+
+Here's an example of what your configuration file (`config.yaml`) should look like:
+
+```yaml
+project_path: "my_projects/vicon/"
+virus_name: "rsva_algo1_python"
+input_sample: "data/rsva/samples/RSVA_1973-2023-10.fasta"
+input_reference: "data/rsva/reference/EPI_ISL_412866_RSVA_ref.fasta"
+email: "email@address.com"
+kmer_size: 150
+threshold: 147
+l_gene_start: 8000
+l_gene_end: 16000
+coverage_ratio: 0.5
+min_year: 2020
+threshold_ratio: 0.01
+drop_old_samples: false
+drop_mischar_samples: true
+```
 
 ## License
 This project is licensed under the terms of the MIT license.

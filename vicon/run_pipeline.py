@@ -105,11 +105,11 @@ def main():
         sort_by_mismatches=False, window_size=kmer_size
     )
 
-    print(f"[INFO] Kmer1: {kmer1}, Kmer2: {kmer2}")
+    # print(f"[INFO] Kmer1: {kmer1}, Kmer2: {kmer2}")
 
     kmer1_seq, kmer2_seq = extract_kmer_sequences(input_reference, kmer1, kmer2, kmer_size)
-    print(f"[INFO] Kmer1 sequence (position {kmer1}):\n{kmer1_seq}")
-    print(f"[INFO] Kmer2 sequence (position {kmer2}):\n{kmer2_seq}")
+    print(f"[INFO] Degenerate Kmer1 sequence (from reference) (position {kmer1}):\n{kmer1_seq}")
+    print(f"[INFO] Degenerate Kmer2 sequence (from reference) (position {kmer2}):\n{kmer2_seq}")
 
     # Clean results
     df_kmers1, df_kmers2, df_samples = pipeline_results_cleaner(
@@ -136,11 +136,12 @@ def main():
         )
 
     # Filter by common kmers
-    filtered_df, kmer1_most, kmer2_most = filter_by_most_common_kmers(df_samples)
-    print(f"[INFO] Most common kmer1: {kmer1_most}")
-    print(f"[INFO] Most common kmer2: {kmer2_most}")
-    print(f"[INFO] Original samples: {df_samples.shape[0]}, After filtering: {filtered_df.shape[0]}")
-    print(f"[INFO] Coverage ratio: {filtered_df.shape[0] / df_samples.shape[0]:.3f}")
+    filtered_df, kmer1_most, kmer2_most, kmer1_count, kmer2_count = filter_by_most_common_kmers(df_samples)
+    print(f"[INFO] Native kmer1 sequence: {kmer1_most}")
+    print(f"[INFO] Native Kmer1 count: {kmer1_count}")
+    print(f"[INFO] Native kmer2 sequence: {kmer2_most}")
+    print(f"[INFO] Native Kmer2 count: {kmer2_count}")
+    print(f"[INFO] Overall Native Coverage : {filtered_df.shape[0]} out of {df_samples.shape[0]}")
 
 
 if __name__ == "__main__":
