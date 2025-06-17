@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vicon"
-version = "0.2.6"
+version = "0.2.7"
 description = "VICON - Viral Conserved Sequence Extraction Toolkit"
 readme = "README.md"
 license = {text = "MIT"}
@@ -32,6 +32,9 @@ dependencies = [
     "biopython",
     "pyyaml"
 ]
+
+# Note: This package requires minimap2 (>=2.30) to be installed on the system
+# It can be installed via conda: conda install -c bioconda minimap2>=2.24
 
 [project.urls]
 Homepage = "https://github.com/EhsanKA/vicon"

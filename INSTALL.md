@@ -74,6 +74,19 @@ conda install -c file://$HOME/tmp-conda-build vicon
 chmod +x "$CONDA_PREFIX/bin/python"
 ```
 
+## Installing from Anaconda Cloud
+
+If you want to install directly from Anaconda Cloud:
+
+```bash
+# Create a new environment (recommended)
+conda create -n vicon python=3.11
+conda activate vicon
+
+# Install VICON
+conda install -c conda-forge -c bioconda -c eka97 vicon
+```
+
 ## Running VICON
 
 1. Review the example configuration file:
