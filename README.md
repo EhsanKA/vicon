@@ -13,7 +13,25 @@ VICON is a Python package for processing and analyzing viral sequence data, with
 
 ## Installation
 
-### Local Installation
+### Standard Installation
+
+1. Create and activate a conda environment:
+   ```bash
+   conda create -n vicon python=3.11
+   conda activate vicon
+   ```
+
+2. Install vsearch (required dependency):
+   ```bash
+   conda install -c bioconda vsearch -y
+   ```
+
+3. Install VICON:
+   ```bash
+   pip install vicon
+   ```
+
+### Development Installation
 
 1. Clone the repository:
    ```bash
@@ -32,6 +50,10 @@ VICON is a Python package for processing and analyzing viral sequence data, with
    ```
    https://www.anaconda.com/docs/getting-started/miniconda/install#macos-linux-installation
    ```
+   - Install vsearch:
+     ```bash
+     conda install -c bioconda vsearch -y
+     ```
    - ViralMSA:
       ```bash
       mkdir -p scripts && cd scripts
@@ -40,7 +62,7 @@ VICON is a Python package for processing and analyzing viral sequence data, with
       cd ../
       ```
 
-3. Install the package:
+4. Install VICON in development mode:
    ```bash
    pip install -e .
    ```

@@ -1,0 +1,10 @@
+# Input/Output paths
+input_dir: "path/to/your/input/directory"  # Directory containing your input files
+output_dir: "path/to/your/output/directory"  # Directory where results will be saved
+
+# Pipeline parameters
+pipeline:
+  # Add your pipeline-specific parameters here
+  # For example:
+  min_quality: 30
+  threads: 4 

@@ -1,4 +1,4 @@
-name: vicon-test
+name: vicon
 channels:
   - conda-forge
 dependencies:

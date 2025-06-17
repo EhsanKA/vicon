@@ -1,6 +1,6 @@
 package:
   name: vicon
-  version: 0.1.0
+  version: 0.2.6
 
 source:
   path: ..
@@ -13,16 +13,17 @@ build:
 
 requirements:
   build:
-    - python >=3.11
+    - python >=3.7
     - pip
     - setuptools
   run:
-    - python >=3.11
+    - python >=3.7
     - numpy 
     - pandas
     - matplotlib
-    - vsearch
+    - bioconda::vsearch
     - pyyaml
+    - biopython
 
 about:
   home: https://github.com/EhsanKA/vicon
