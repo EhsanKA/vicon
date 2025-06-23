@@ -60,10 +60,10 @@ def main():
     # --- FASTA cleaning step: process and replace input files with cleaned versions ---
     input_sample_upper = input_sample.replace('.fasta', '_upper.fasta')
     input_reference_upper = input_reference.replace('.fasta', '_upper.fasta')
-    process_fasta_file(input_sample, input_sample_upper)
-    process_fasta_file(input_reference, input_reference_upper)
-    input_sample = input_sample_upper
-    input_reference = input_reference_upper
+    # process_fasta_file(input_sample, input_sample_upper)
+    # process_fasta_file(input_reference, input_reference_upper)
+    # input_sample = input_sample_upper
+    # input_reference = input_reference_upper
     # -------------------------------------------------------------------------------
 
     sample_dir = os.path.dirname(input_sample)
