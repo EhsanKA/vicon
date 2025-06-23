@@ -154,5 +154,21 @@ def main():
     print(f"[INFO] Overall Native Coverage : {filtered_df.shape[0]} out of {df_samples.shape[0]}")
 
 
+    # Calculate overall degenerate coverage using the binary matrix for cleaned samples
+    if kmer1 in df3.columns and kmer2 in df3.columns:
+        # Only keep rows (samples) present in df_samples
+        deg_df = df3.loc[df_samples.index, [kmer1, kmer2]]
+        # For each sample, check if either kmer is present
+        deg_covered = (deg_df.sum(axis=1) > 0).sum()
+        # Print kmer1 and kmer2 sequences and their counts from df3 among cleaned samples
+        print(f"[INFO] Cleaned Degenerate Kmer1 sequence (from reference): {kmer1_seq}")
+        print(f"[INFO] Cleaned Degenerate Kmer1 count (from binary matrix): {deg_df[kmer1].sum()}")
+        print(f"[INFO] Cleaned Degenerate Kmer2 sequence (from reference): {kmer2_seq}")
+        print(f"[INFO] Cleaned Degenerate Kmer2 count (from binary matrix): {deg_df[kmer2].sum()}")
+        print(f"[INFO] Cleaned Overall Degenerate Coverage (from binary matrix): {deg_covered} out of {deg_df.shape[0]}")
+    else:
+        print("[WARN] kmer1 or kmer2 not found in df3 columns for degenerate coverage calculation.")
+
+
 if __name__ == "__main__":
     main()

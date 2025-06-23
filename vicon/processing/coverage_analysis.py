@@ -209,7 +209,15 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatch
 
     print(f"[INFO] Degenerate Kmer1 Coverage: {df_best.iloc[0]['cov1']}")
     print(f"[INFO] Degenerate Kmer2 Coverage: {df_best.iloc[0]['cov2']}")
-    print(f"[INFO] Overall Degenerate Coverage: {df_best.iloc[0]['sum_cov']}")
+    # Calculate and print the actual number of unique samples covered by either kmer1 or kmer2
+    kmer1 = df_best.iloc[0]['kmer1']
+    kmer2 = df_best.iloc[0]['kmer2']
+    ids1 = set(kmer_dict[kmer1]['indices'])
+    ids2 = set(kmer_dict[kmer2]['indices'])
+    overall_covered = ids1 | ids2
+    total_samples = mask.shape[0] if hasattr(mask, 'shape') else len(ldf)
+    print(f"[INFO] Overall Degenerate Coverage (unique samples): {len(overall_covered)}")
+    print(f"[INFO] Total number of samples: {total_samples}")
     
     return df_best.iloc[0]['kmer1'], df_best.iloc[0]['kmer2']
 
