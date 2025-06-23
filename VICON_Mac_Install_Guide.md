@@ -50,6 +50,35 @@ conda activate vicon
 - Make sure your input FASTA files and config file are in the correct locations as specified in your config YAML.
 - If you just downloaded or edited files, double-check their paths.
 
+**Note:** All file paths in your config file (such as `input_sample` and `input_reference`) should be **relative to the directory where you run the `vicon-run` command** in the terminal. If you use absolute paths, this does not apply.
+
+**Example:**
+Suppose your directory structure is:
+
+```
+/Users/yourusername/vicon_project/
+├── data/
+│   └── orov/
+│       ├── samples/
+│       │   └── samples.fasta
+│       └── reference/
+│           └── reference.fasta
+├── config.yaml
+```
+
+And your `config.yaml` contains:
+```yaml
+input_sample: "data/orov/samples/samples.fasta"
+input_reference: "data/orov/reference/reference.fasta"
+```
+
+If you open Terminal and run:
+```bash
+cd /Users/yourusername/vicon_project
+vicon-run --config config.yaml
+```
+then the paths in your config will resolve correctly. If you run the command from a different directory, you must adjust the paths accordingly or use absolute paths.
+
 ### D. Run the Pipeline
 
 ```bash
