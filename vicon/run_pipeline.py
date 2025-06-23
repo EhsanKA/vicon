@@ -16,7 +16,8 @@ from vicon.io.fasta import read_fasta_to_dataframe, remove_first_record
 from vicon.utils.helpers import (
     load_config,
     count_non_gap_characters_from_dataframe,
-    filter_by_most_common_kmers
+    filter_by_most_common_kmers,
+    process_fasta_file
 )
 
 
@@ -55,6 +56,15 @@ def main():
     input_sample = os.path.join(base_path, config["input_sample"])
     input_reference = os.path.join(base_path, config["input_reference"])
     output_dir = os.path.join(base_path, "results", virus)
+
+    # --- FASTA cleaning step: process and replace input files with cleaned versions ---
+    input_sample_upper = input_sample.replace('.fasta', '_upper.fasta')
+    input_reference_upper = input_reference.replace('.fasta', '_upper.fasta')
+    process_fasta_file(input_sample, input_sample_upper)
+    process_fasta_file(input_reference, input_reference_upper)
+    input_sample = input_sample_upper
+    input_reference = input_reference_upper
+    # -------------------------------------------------------------------------------
 
     sample_dir = os.path.dirname(input_sample)
     aligned_dir = os.path.join(sample_dir, "aligned")

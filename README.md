@@ -83,6 +83,17 @@ To run the VICON pipeline, use the following command:
 vicon-run --config path/to/your/config.yaml
 ```
 
+### Input FASTA Preprocessing
+
+> **Note:**  
+> When you run the pipeline, VICON will automatically preprocess your input FASTA files (both sample and reference) before any analysis.  
+> This step:
+> - Converts all sequences to uppercase
+> - Cleans and standardizes FASTA headers
+> - Replaces any non-ATCG characters in sequences with 'N'
+>
+> The cleaned files are used for all downstream analysis, so you do not need to manually edit or check your FASTA files for these issues.
+
 ### Example Configuration
 
 Here's an example of what your configuration file (`config.yaml`) should look like:
