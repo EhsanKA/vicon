@@ -156,8 +156,9 @@ def main():
 
     # Calculate overall degenerate coverage using the binary matrix for cleaned samples
     if kmer1 in df3.columns and kmer2 in df3.columns:
-        # Only keep rows (samples) present in df_samples
-        deg_df = df3.loc[df_samples.index, [kmer1, kmer2]]
+        # Only keep rows (samples) present in both df3 and df_samples
+        common_idx = df3.index.intersection(df_samples.index)
+        deg_df = df3.loc[common_idx, [kmer1, kmer2]]
         # For each sample, check if either kmer is present
         deg_covered = (deg_df.sum(axis=1) > 0).sum()
         # Print kmer1 and kmer2 sequences and their counts from df3 among cleaned samples

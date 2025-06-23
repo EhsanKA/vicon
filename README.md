@@ -115,5 +115,23 @@ drop_old_samples: false
 drop_mischar_samples: true
 ```
 
+### FASTA Header Year Extraction: Supported Formats
+
+The pipeline will extract the year from your FASTA headers if they match one of these patterns:
+
+| Header Example           | Year Extracted? | Extracted Year | Reason                |
+|-------------------------|:--------------:|:--------------:|-----------------------|
+| `>sample|2021`           | Yes            | 2021           | After pipe            |
+| `>sample_2020`           | Yes            | 2020           | After underscore      |
+| `>sample|15-JAN-2019`    | Yes            | 2019           | Date format           |
+| `>sample_23-DEC-2022`    | Yes            | 2022           | Date format           |
+| `>sample_ABC2021`        | Yes            | 2021           | Ends with 4 digits    |
+| `>sample_2024_04_15`     | Yes            | 2024           | First _YYYY           |
+| `>sample|2024_04_15`     | Yes            | 2024           | First |YYYY            |
+| `>sample2021extra`       | No             | -              | Not at end/after sep  |
+| `>sample|202`            | No             | -              | Not 4 digits          |
+
+> **Tip:** For best results, use `|YYYY` or `_YYYY` at the end of your FASTA header.
+
 ## License
 This project is licensed under the terms of the MIT license.
