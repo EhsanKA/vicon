@@ -11,7 +11,7 @@
 ### B. Create and Activate a New Environment
 
 ```bash
-conda create -n vicon python=3.11
+conda create -n vicon python=3.11 -y
 conda activate vicon
 ```
 
