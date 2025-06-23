@@ -20,7 +20,7 @@ conda activate vicon
 Run the following command to install VICON and all dependencies:
 
 ```bash
-conda install -c conda-forge -c bioconda -c eka97 vicon
+conda install -c conda-forge -c bioconda -c eka97 vicon -y
 ```
 
 ### D. Set Permissions (if needed)
