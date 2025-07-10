@@ -181,12 +181,21 @@ def main():
     logger.info(f"[INFO] Native Kmer2 count: {kmer2_count}")
     logger.info(f"[INFO] Overall Native Coverage : {filtered_df.shape[0]} out of {df_samples.shape[0]}")
 
-    sample_id_with_kmers_df = mask_kmers_with_reference(df_samples, kmer1_most, kmer2_most)
-    # Save the masked DataFrame
-    masked_kmers_path = os.path.join(output_dir, "sample_id_with_kmers.csv")
-    sample_id_with_kmers_df.to_csv(masked_kmers_path, index=False)
-    logger.info(f"Saved sample_id_with_kmers.csv to {masked_kmers_path}")
-    logger.info(f"This file contains the sample IDs along with their corresponding kmer1 and kmer2 Sequences (showing differences from the native kmer1 and kmer2) and years.")
+    # Mask and save kmer1
+    sample_id_with_kmer1_masked = mask_kmers_with_reference(df_samples, kmer1_most, 'kmer1')
+    masked_kmer1_path = os.path.join(output_dir, "sample_id_with_kmer1_masked.csv")
+    sample_id_with_kmer1_masked = sample_id_with_kmer1_masked.drop(columns=['kmer2', 'year'], errors='ignore')  # Drop kmer2 column if it exists
+    sample_id_with_kmer1_masked.to_csv(masked_kmer1_path, index=False)
+    logger.info(f"Saved sample_id_with_kmer1_masked.csv to {masked_kmer1_path}")
+    logger.info(f"This file contains the sample IDs along with their corresponding kmer1 sequences (showing differences from the native kmer1) and years.")
+
+    # Mask and save kmer2
+    sample_id_with_kmer2_masked = mask_kmers_with_reference(df_samples, kmer2_most, 'kmer2')
+    masked_kmer2_path = os.path.join(output_dir, "sample_id_with_kmer2_masked.csv")
+    sample_id_with_kmer2_masked = sample_id_with_kmer2_masked.drop(columns=['kmer1', 'year'], errors='ignore')  # Drop kmer1 column if it exists
+    sample_id_with_kmer2_masked.to_csv(masked_kmer2_path, index=False)
+    logger.info(f"Saved sample_id_with_kmer2_masked.csv to {masked_kmer2_path}")
+    logger.info(f"This file contains the sample IDs along with their corresponding kmer2 sequences (showing differences from the native kmer2) and years.")
 
     # Calculate overall degenerate coverage using the binary matrix for cleaned samples
     if kmer1 in df3.columns and kmer2 in df3.columns:

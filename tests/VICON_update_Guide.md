@@ -1,5 +1,3 @@
-<img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" class="logo" width="120"/>
-
 # VICON Installation and Usage Guide
 
 This guide explains how to install and run VICON version 1.0.0 using Conda, including setting up necessary permissions and executing the workflow with a sample configuration.

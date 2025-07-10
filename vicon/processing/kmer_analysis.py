@@ -141,20 +141,25 @@ def create_kmers_dataframe(sorted_subsequences, subseq_to_years, most_frequent_s
 
     return pd.DataFrame(data)
 
-def mask_kmers_with_reference(df_samples, most_freq_seq_1, most_freq_seq_2):
+def mask_kmers_with_reference(df_samples, most_freq_seq, kmer_col):
     """
-    Returns a copy of df_samples where kmer1 and kmer2 columns are masked:
-    - Any character in kmer1 that matches most_freq_seq_1 is replaced with '-'
-    - Any character in kmer2 that matches most_freq_seq_2 is replaced with '-'
+    Returns a copy of df_samples where the specified kmer column is masked:
+    - Any character in the kmer column that matches most_freq_seq is replaced with '-'
+    - Rows where the kmer column is equal to most_freq_seq are removed
+    - Drops the 'Sequence' column if it exists
     """
     df_masked = df_samples.copy()
     # Drop the 'Sequence' column if it exists
     if 'Sequence' in df_masked.columns:
         df_masked = df_masked.drop(columns=['Sequence'])
 
+    # Remove rows where kmer_col == most_freq_seq
+    mask = df_masked[kmer_col] != most_freq_seq
+    df_masked = df_masked[mask].copy()
+
     def mask_seq(seq, ref):
         return ''.join('-' if a == b else a for a, b in zip(seq, ref)) if pd.notnull(seq) and pd.notnull(ref) else seq
-    df_masked['kmer1'] = df_masked['kmer1'].apply(lambda x: mask_seq(x, most_freq_seq_1))
-    df_masked['kmer2'] = df_masked['kmer2'].apply(lambda x: mask_seq(x, most_freq_seq_2))
+    df_masked[kmer_col] = df_masked[kmer_col].apply(lambda x: mask_seq(x, most_freq_seq))
+
     return df_masked
 
