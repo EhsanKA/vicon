@@ -13,10 +13,10 @@ conda activate vicon
 
 ## 2. VICON Installation
 
-Install VICON version 1.0.0 along with its dependencies from the specified channels:
+Install VICON version 1.0.1 along with its dependencies from the specified channels:
 
 ```bash
-conda install -c conda-forge -c bioconda -c eka97 vicon=1.0.0 -y
+conda install -c conda-forge -c bioconda -c eka97 vicon=1.0.1 -y
 ```
 
 - **conda-forge** and **bioconda** provide bioinformatics packages.
