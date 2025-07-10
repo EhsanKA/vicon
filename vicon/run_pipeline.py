@@ -7,26 +7,23 @@ import shutil
 import pandas as pd
 import argparse
 import logging
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 
 from vicon.dereplication.derep import run_vsearch
 from vicon.alignment.ref_align import run_viralmsa
 from vicon.processing.sample_processing import process_all_samples, pipeline_results_cleaner
 from vicon.visualization.plots import plot_non_gap_counts, plot_rel_cons
 from vicon.processing.coverage_analysis import crop_df, find_best_pair_kmer
-from vicon.io.fasta import read_fasta_to_dataframe, remove_first_record
+from vicon.io.fasta import read_fasta_to_dataframe, remove_first_record, generate_remaining_fasta
+from vicon.processing.kmer_analysis import mask_kmers_with_reference
 from vicon.utils.helpers import (
     load_config,
     count_non_gap_characters_from_dataframe,
     filter_by_most_common_kmers,
     process_fasta_file
 )
-
-# Configure logging
-# logging.basicConfig(
-#     filename='pipeline.log',  # Log file name
-#     level=logging.INFO,       # Log level
-#     format='%(asctime)s - %(levelname)s - %(message)s'  # Log format
-# )
 
 
 def setup_alignment_directory(aligned_dir):
@@ -39,6 +36,7 @@ def extract_kmer_sequences(reference_path, kmer1, kmer2, kmer_size):
     df_ref = read_fasta_to_dataframe(reference_path)
     ref_seq = df_ref['Sequence'].values[0]
     return ref_seq[kmer1:kmer1+kmer_size], ref_seq[kmer2:kmer2+kmer_size]
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run the VICON pipeline.")
@@ -93,6 +91,7 @@ def main():
     logger.setLevel(logging.INFO)
 
     # Create a file handler with dynamic log file name
+    os.makedirs(log_dir, exist_ok=True)  # <-- This must come BEFORE FileHandler
     log_file_path = os.path.join(log_dir, 'pipeline.log')
     file_handler = logging.FileHandler(log_file_path)
     file_handler.setLevel(logging.INFO)
@@ -182,6 +181,13 @@ def main():
     logger.info(f"[INFO] Native Kmer2 count: {kmer2_count}")
     logger.info(f"[INFO] Overall Native Coverage : {filtered_df.shape[0]} out of {df_samples.shape[0]}")
 
+    sample_id_with_kmers_df = mask_kmers_with_reference(df_samples, kmer1_most, kmer2_most)
+    # Save the masked DataFrame
+    masked_kmers_path = os.path.join(output_dir, "sample_id_with_kmers.csv")
+    sample_id_with_kmers_df.to_csv(masked_kmers_path, index=False)
+    logger.info(f"Saved sample_id_with_kmers.csv to {masked_kmers_path}")
+    logger.info(f"This file contains the sample IDs along with their corresponding kmer1 and kmer2 Sequences (showing differences from the native kmer1 and kmer2) and years.")
+
     # Calculate overall degenerate coverage using the binary matrix for cleaned samples
     if kmer1 in df3.columns and kmer2 in df3.columns:
         # Only keep rows (samples) present in both df3 and df_samples
@@ -198,6 +204,16 @@ def main():
         logger.info(f"[INFO] Cleaned Degenerate Kmer1 count (from binary matrix): {deg_df[kmer1].sum()}")
         logger.info(f"[INFO] Cleaned Degenerate Kmer2 count (from binary matrix): {deg_df[kmer2].sum()}")
         logger.info(f"[INFO] Cleaned Overall Degenerate Coverage (from binary matrix): {deg_covered} out of {deg_df.shape[0]}")
+        
+        logger.info(df_samples.columns)
+
+    #     # Generate remaining sequences FASTA file
+    #     remaining_fasta_path = os.path.join(output_dir, "remaining_sequences.fasta")
+    #     remaining_count = generate_remaining_fasta(
+    #         df3, df_samples, kmer1, kmer2, 
+    #         derep_fasta_aln, remaining_fasta_path, logger
+    #     )
+    #     logger.info(f"[INFO] Generated remaining sequences file with {remaining_count} sequences: {remaining_fasta_path}")
     else:
         logger.warning("[WARN] kmer1 or kmer2 not found in df3 columns for degenerate coverage calculation.")
 

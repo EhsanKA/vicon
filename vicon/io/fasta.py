@@ -1,5 +1,7 @@
 import pandas as pd
 from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 import os
 
 def read_fasta(file_path):
@@ -94,3 +96,62 @@ def remove_first_record(input_fasta, output_fasta, logger=None):
         logger.info(f"The first record has been removed. Updated FASTA saved to: {output_fasta}")
     else:
         print(f"The first record has been removed. Updated FASTA saved to: {output_fasta}")
+
+
+def generate_remaining_fasta(df3, df_samples, kmer1, kmer2, fasta_file_path, output_path, logger=None):
+    """
+    Generate a FASTA file containing sequences that are not covered by the degenerate kmers.
+    
+    Args:
+        df3 (pd.DataFrame): Binary matrix with kmer coverage data
+        df_samples (pd.DataFrame): DataFrame containing sample information with 'ID' column
+        kmer1 (int): Position of first kmer
+        kmer2 (int): Position of second kmer  
+        fasta_file_path (str): Path to the original FASTA file to extract sequences from
+        output_path (str): Path where the remaining sequences FASTA file will be saved
+        logger (logging.Logger, optional): Logger for logging information
+    
+    Returns:
+        int: Number of remaining sequences written to file
+    """
+    if kmer1 not in df3.columns or kmer2 not in df3.columns:
+        if logger:
+            logger.warning(f"Kmer1 ({kmer1}) or kmer2 ({kmer2}) not found in df3 columns")
+        return 0
+    
+    # Get common indices between df3 and df_samples
+    common_idx = df3.index.intersection(df_samples['ID'])
+    deg_df = df3.loc[common_idx, [kmer1, kmer2]]
+    
+    if logger:
+        logger.info(f"Total samples in df3: {len(df3)}")
+        logger.info(f"Total samples in df_samples: {len(df_samples)}")
+        logger.info(f"Common samples between df3 and df_samples: {len(common_idx)}")
+        logger.info(f"Samples covered by kmer1: {deg_df[kmer1].sum()}")
+        logger.info(f"Samples covered by kmer2: {deg_df[kmer2].sum()}")
+    
+    # Find samples that are NOT covered by either kmer (sum == 0)
+    not_covered_mask = (deg_df.sum(axis=1) == 0)
+    not_covered_ids = deg_df[not_covered_mask].index.tolist()
+    
+    if logger:
+        logger.info(f"Found {len(not_covered_ids)} sequences not covered by degenerate kmers")
+        if len(not_covered_ids) > 0:
+            logger.info(f"Not covered IDs: {not_covered_ids[:5]}...")  # Show first 5
+    
+    # Read the original FASTA file
+    original_fasta_df = read_fasta_to_dataframe(fasta_file_path)
+    
+    # Filter sequences that are not covered
+    remaining_sequences = original_fasta_df[original_fasta_df['ID'].isin(not_covered_ids)]
+    
+    # Write remaining sequences to new FASTA file manually
+    with open(output_path, 'w') as f:
+        for _, row in remaining_sequences.iterrows():
+            f.write(f">{row['ID']}\n")
+            f.write(f"{row['Sequence']}\n")
+    
+    if logger:
+        logger.info(f"Remaining sequences saved to: {output_path}")
+    
+    return len(remaining_sequences)
