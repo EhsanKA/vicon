@@ -1,6 +1,6 @@
 package:
   name: vicon
-  version: 0.2.7
+  version: 1.0.0
   build: 1
 
 source:
