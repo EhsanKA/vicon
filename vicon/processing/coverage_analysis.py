@@ -34,17 +34,24 @@ def abundant_kmers(df):
             print(f"Remaining kmers to process: {total_remaining}")
     return output, samples
 
-def crop_df(df, start, end, coverage_ratio=0.5):
+def crop_df(df, start, end, coverage_ratio=0.5, logger=None):
     """Crops the DataFrame to the specified gene region and coverage threshold."""
-    ldf = limit_to_l_gene(df, start, end)
-    min_coverage = find_min_coverage_threshold(ldf, coverage_ratio)
+    ldf = limit_to_l_gene(df, start, end, logger=logger)
+    min_coverage = find_min_coverage_threshold(ldf, coverage_ratio, logger=logger)
     ldf = ldf.loc[:, ldf.sum() > min_coverage]
-    print(f"DataFrame cropped to {ldf.shape[1]} columns with coverage above threshold.")
+    if logger:
+        logger.info(f"DataFrame cropped to {ldf.shape[1]} columns with coverage above threshold.")
+    else:
+        print(f"DataFrame cropped to {ldf.shape[1]} columns with coverage above threshold.")
+    
     return ldf
 
-def limit_to_l_gene(df, start, end):
+def limit_to_l_gene(df, start, end, logger=None):
     """Limits the DataFrame to the specified gene region."""
-    print(f"Limiting DataFrame to gene region from position {start} to {end}")
+    if logger:
+        logger.info(f"Limiting DataFrame to gene region from position {start} to {end}")
+    else:
+        print(f"Limiting DataFrame to gene region from position {start} to {end}")
     ldf = df.loc[:, (df.columns >= start) & (df.columns <= end)]
     return ldf
 
@@ -132,7 +139,7 @@ def process_coverage_chunk(args):
         results.append((i, j, len(set(kmer_indices[c1]).union(kmer_indices[c2]))))
     return results
 
-def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatches=True ,n_processes=None):
+def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatches=True ,n_processes=None, logger=None):
     """
     Finds the best pair of kmers from a DataFrame using parallel processing.
     This function evaluates all possible pairs of kmer columns in the input DataFrame (`ldf`)
@@ -156,7 +163,10 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatch
     
     if n_processes is None:
         n_processes = cpu_count()
-        print(f"Using {n_processes} processes")
+        if logger:
+            logger.info(f"Using {n_processes} processes")
+        else:
+            print(f"Using {n_processes} processes")
 
     # Parallel process kmer_dict
     df = read_fasta_to_dataframe(fasta_file)
@@ -165,7 +175,8 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatch
         results = pool.map(process_kmer_column, args)
     
     kmer_dict = dict(results)
-    print(f"Kmer dict computed in {time.time()-start_time:.2f}s")
+
+    logger.info(f"Kmer dict computed in {time.time()-start_time:.2f}s")
     
     # Extract just the indices for parallel processing
     kmer_indices = {k: v['indices'] for k, v in kmer_dict.items()}
@@ -188,7 +199,7 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatch
         for i, j, value in chunk_results:
             cov[i, j] = value
     
-    print(f"Coverage matrix computed in {time.time()-start_time:.2f}s")
+    logger.info(f"Coverage matrix computed in {time.time()-start_time:.2f}s")
     
     # Get all pairs and their unique coverage
     pair_indices = [(i, j) for i in range(n) for j in range(i+1, n)]
@@ -219,10 +230,10 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatch
 
     total_samples = mask.shape[0] if hasattr(mask, 'shape') else len(ldf)
     
-    print(f"[INFO] Degenerate Kmer1 Coverage: {cov1}")
-    print(f"[INFO] Degenerate Kmer2 Coverage: {cov2}")
-    print(f"[INFO] Degenerate kmer1 and kmer2 Coverage (unique samples): {unique_cov}")
-    print(f"[INFO] Total number of samples: {total_samples}")
+    logger.info(f"[INFO] Degenerate Kmer1 Coverage: {cov1}")
+    logger.info(f"[INFO] Degenerate Kmer2 Coverage: {cov2}")
+    logger.info(f"[INFO] Degenerate kmer1 and kmer2 Coverage (unique samples): {unique_cov}")
+    logger.info(f"[INFO] Total number of samples: {total_samples}")
     
     return df_best.iloc[0]['kmer1'], df_best.iloc[0]['kmer2']
 

@@ -87,12 +87,15 @@ def count_non_gap_characters_from_dataframe(df, sequence_column='alignment'):
     df_counts.set_index('Position', inplace=True)
     return df_counts
 
-def find_min_coverage_threshold(df, coverage_ratio=0.5):
+def find_min_coverage_threshold(df, coverage_ratio=0.5, logger=None):
     """
     Calculates the minimum coverage threshold based on the coverage ratio.
     """
     min_coverage = int(df.shape[0] * coverage_ratio)
-    print(f"Minimum coverage threshold set to {min_coverage} based on coverage ratio {coverage_ratio}")
+    if logger:
+        logger.info(f"Minimum coverage threshold set to {min_coverage} based on coverage ratio {coverage_ratio}")
+    else:
+        print(f"Minimum coverage threshold set to {min_coverage} based on coverage ratio {coverage_ratio}")
     return min_coverage
 
 

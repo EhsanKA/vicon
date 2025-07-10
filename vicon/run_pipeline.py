@@ -6,6 +6,7 @@ import os
 import shutil
 import pandas as pd
 import argparse
+import logging
 
 from vicon.dereplication.derep import run_vsearch
 from vicon.alignment.ref_align import run_viralmsa
@@ -19,6 +20,13 @@ from vicon.utils.helpers import (
     filter_by_most_common_kmers,
     process_fasta_file
 )
+
+# Configure logging
+# logging.basicConfig(
+#     filename='pipeline.log',  # Log file name
+#     level=logging.INFO,       # Log level
+#     format='%(asctime)s - %(levelname)s - %(message)s'  # Log format
+# )
 
 
 def setup_alignment_directory(aligned_dir):
@@ -47,9 +55,7 @@ def main():
     args = parse_args()
     config = load_config(args.config)
 
-
     # Paths and Constants
-    # base_path = os.path.join(config["project_path"], "vicon")
     base_path = config["project_path"]
     virus = config["virus_name"]
 
@@ -82,13 +88,33 @@ def main():
     l_gene_end = config["l_gene_end"]
     coverage_ratio = config["coverage_ratio"]
 
+    # Define a logger
+    logger = logging.getLogger('pipeline_logger')
+    logger.setLevel(logging.INFO)
+
+    # Create a file handler with dynamic log file name
+    log_file_path = os.path.join(log_dir, 'pipeline.log')
+    file_handler = logging.FileHandler(log_file_path)
+    file_handler.setLevel(logging.INFO)
+
+    # Create a logging format
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+
+    # Add the handler to the logger
+    logger.addHandler(file_handler)
+
+    # Pass logger to coverage_analysis
+    from vicon.processing.coverage_analysis import crop_df, find_best_pair_kmer
+    coverage_analysis_logger = logger
+
     # Setup
-    print(f"[INFO] Using base path: {base_path}")
-    print(f"aligned_dir: {aligned_dir}")
+    logger.info(f"[INFO] Using base path: {base_path}")
+    logger.info(f"aligned_dir: {aligned_dir}")
     setup_alignment_directory(aligned_dir)
 
     # Dereplication and Alignment
-    run_vsearch(input_sample, derep_fasta, clusters_uc)
+    run_vsearch(input_sample, derep_fasta, clusters_uc, logger=logger)
 
     run_viralmsa(
         email=email,
@@ -97,7 +123,7 @@ def main():
         reference_fasta=input_reference,
     )
 
-    remove_first_record(derep_fasta_aln, derep_fasta_aln)
+    remove_first_record(derep_fasta_aln, derep_fasta_aln, logger=logger)
 
     # Process Samples
     df3, mask3 = process_all_samples(
@@ -109,17 +135,15 @@ def main():
     plot_rel_cons(df3, kmer_size=kmer_size, threshold=kmer_size-threshold, save_path=output_dir, sample_name=virus)
 
     # L-gene region crop and kmer detection
-    ldf = crop_df(df3, l_gene_start, l_gene_end, coverage_ratio=coverage_ratio)
+    ldf = crop_df(df3, l_gene_start, l_gene_end, coverage_ratio=coverage_ratio, logger=logger)
     kmer1, kmer2 = find_best_pair_kmer(
         ldf, derep_fasta_aln, mask3,
-        sort_by_mismatches=False, window_size=kmer_size
+        sort_by_mismatches=False, window_size=kmer_size, logger=logger
     )
 
-    # print(f"[INFO] Kmer1: {kmer1}, Kmer2: {kmer2}")
-
     kmer1_seq, kmer2_seq = extract_kmer_sequences(input_reference, kmer1, kmer2, kmer_size)
-    print(f"[INFO] Degenerate Kmer1 sequence (from reference) (position {kmer1})") #:\n{kmer1_seq}")
-    print(f"[INFO] Degenerate Kmer2 sequence (from reference) (position {kmer2})") #:\n{kmer2_seq}")
+    logger.info(f"[INFO] Degenerate Kmer1 sequence (from reference) (position {kmer1})")
+    logger.info(f"[INFO] Degenerate Kmer2 sequence (from reference) (position {kmer2})")
 
     # Clean results
     df_kmers1, df_kmers2, df_samples = pipeline_results_cleaner(
@@ -130,7 +154,8 @@ def main():
         kmer_size=kmer_size,
         min_year=config["min_year"],
         threshold_ratio=config["threshold_ratio"],
-        drop_mischar_samples=config["drop_mischar_samples"]
+        drop_mischar_samples=config["drop_mischar_samples"],
+        logger=logger
     )
 
     df_kmers1.to_csv(kmer1_path)
@@ -141,21 +166,21 @@ def main():
         df_counts = count_non_gap_characters_from_dataframe(df_kmers, sequence_column='alignment') - 1
         plot_non_gap_counts(
             df_counts,
-            title=f'{virus} – {label} Non-Gap Counts',
-            save=os.path.join(output_dir, f"{label}_mutations.png")
+            title=f'{virus} - {label} Non-Gap Counts',
+            save=os.path.join(output_dir, f"{label}_mutations.png"),
+            logger=logger
         )
 
     # Filter by common kmers
     filtered_df, kmer1_most, kmer2_most, kmer1_count, kmer2_count = filter_by_most_common_kmers(df_samples)
-    print("*"*100)
-    print("output summary: [cleaned samples , native kmers] ")
-    print("*"*100)
-    print(f"[INFO] Native kmer1 sequence: \n {kmer1_most}")
-    print(f"[INFO] Native kmer2 sequence: \n {kmer2_most}")
-    print(f"[INFO] Native Kmer1 count: {kmer1_count}")
-    print(f"[INFO] Native Kmer2 count: {kmer2_count}")
-    print(f"[INFO] Overall Native Coverage : {filtered_df.shape[0]} out of {df_samples.shape[0]}")
-
+    logger.info("*"*100)
+    logger.info("output summary: [cleaned samples , native kmers] ")
+    logger.info("*"*100)
+    logger.info(f"[INFO] Native kmer1 sequence: \n {kmer1_most}")
+    logger.info(f"[INFO] Native kmer2 sequence: \n {kmer2_most}")
+    logger.info(f"[INFO] Native Kmer1 count: {kmer1_count}")
+    logger.info(f"[INFO] Native Kmer2 count: {kmer2_count}")
+    logger.info(f"[INFO] Overall Native Coverage : {filtered_df.shape[0]} out of {df_samples.shape[0]}")
 
     # Calculate overall degenerate coverage using the binary matrix for cleaned samples
     if kmer1 in df3.columns and kmer2 in df3.columns:
@@ -165,16 +190,22 @@ def main():
         # For each sample, check if either kmer is present
         deg_covered = (deg_df.sum(axis=1) > 0).sum()
         # Print kmer1 and kmer2 sequences and their counts from df3 among cleaned samples
-        print("*"*100)
-        print("output summary: [cleaned samples , degenerate kmers] ")
-        print("*"*100)
-        print(f"[INFO] Cleaned Degenerate Kmer1 sequence (from reference): \n {kmer1_seq}")
-        print(f"[INFO] Cleaned Degenerate Kmer2 sequence (from reference): \n {kmer2_seq}")
-        print(f"[INFO] Cleaned Degenerate Kmer1 count (from binary matrix): {deg_df[kmer1].sum()}")
-        print(f"[INFO] Cleaned Degenerate Kmer2 count (from binary matrix): {deg_df[kmer2].sum()}")
-        print(f"[INFO] Cleaned Overall Degenerate Coverage (from binary matrix): {deg_covered} out of {deg_df.shape[0]}")
+        logger.info("*"*100)
+        logger.info("output summary: [cleaned samples , degenerate kmers] ")
+        logger.info("*"*100)
+        logger.info(f"[INFO] Cleaned Degenerate Kmer1 sequence (from reference): \n {kmer1_seq}")
+        logger.info(f"[INFO] Cleaned Degenerate Kmer2 sequence (from reference): \n {kmer2_seq}")
+        logger.info(f"[INFO] Cleaned Degenerate Kmer1 count (from binary matrix): {deg_df[kmer1].sum()}")
+        logger.info(f"[INFO] Cleaned Degenerate Kmer2 count (from binary matrix): {deg_df[kmer2].sum()}")
+        logger.info(f"[INFO] Cleaned Overall Degenerate Coverage (from binary matrix): {deg_covered} out of {deg_df.shape[0]}")
     else:
-        print("[WARN] kmer1 or kmer2 not found in df3 columns for degenerate coverage calculation.")
+        logger.warning("[WARN] kmer1 or kmer2 not found in df3 columns for degenerate coverage calculation.")
+
+    print("*"*100)
+    print("- vicon pipeline finished")
+    print(f"- Check the {log_file_path} for more details.")
+    print(f"- Logs are being acuumulated in {log_file_path}! to have a clean log, please remove the log file before running the pipeline again.")
+    print("*"*100)
 
 
 if __name__ == "__main__":

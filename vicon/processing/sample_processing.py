@@ -74,11 +74,15 @@ def pipeline_results_cleaner(sample_address='../data/rsva/samples/aligned/derep.
                              min_year=2020,
                              threshold_ratio=0.01,
                              drop_mischar_samples=False,
-                             return_droped_samples=False
+                             return_droped_samples=False,
+                             logger=None
                              ):
     
     df_samples = read_fasta_to_dataframe(sample_address)
-    print(f"Read {df_samples.shape[0]} samples from {sample_address}.")
+    if logger:
+        logger.info(f"Read {df_samples.shape[0]} samples from {sample_address}.")
+    else:
+        print(f"Read {df_samples.shape[0]} samples from {sample_address}.")
 
     df_samples['kmer1'] = df_samples['Sequence'].str.slice(kmer1, kmer1+kmer_size)
     df_samples['kmer2'] = df_samples['Sequence'].str.slice(kmer2, kmer2+kmer_size)
@@ -89,10 +93,16 @@ def pipeline_results_cleaner(sample_address='../data/rsva/samples/aligned/derep.
     df_samples['year'] = pd.to_numeric(df_samples['year'], errors='coerce')
 
     # Drop rows where 'year' is NaN (i.e., non-numerical entries were converted to NaN)
-    print(f"df_samples shape before dropping NaN years: {df_samples.shape}")
+    if logger:
+        logger.info(f"df_samples shape before dropping NaN years: {df_samples.shape}")
+    else:
+        print(f"df_samples shape before dropping NaN years: {df_samples.shape}")
     df_samples_without_year = df_samples[df_samples['year'].isna()]
     df_samples = df_samples.dropna(subset=['year'])
-    print(f"df_samples shape after dropping NaN years: {df_samples.shape}")
+    if logger:
+        logger.info(f"df_samples shape after dropping NaN years: {df_samples.shape}")
+    else:
+        print(f"df_samples shape after dropping NaN years: {df_samples.shape}")
 
     ## Drop the samples containing Non ATCG chars in their kmer1 or kmer2
     # print(df_samples['kmer2'])
@@ -101,7 +111,10 @@ def pipeline_results_cleaner(sample_address='../data/rsva/samples/aligned/derep.
                                               df_samples['kmer2'].str.contains('[^ATCG]', regex=True)]
         df_samples = df_samples[~df_samples['kmer1'].str.contains('[^ATCG]', regex=True) & 
                                 ~df_samples['kmer2'].str.contains('[^ATCG]', regex=True)]
-        print(f"df_samples shape after dropping samples with non ATCG chars: {df_samples.shape}")
+        if logger:
+            logger.info(f"df_samples shape after dropping samples with non ATCG chars: {df_samples.shape}")
+        else:
+            print(f"df_samples shape after dropping samples with non ATCG chars: {df_samples.shape}")
 
 
     # drop old samples 

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-def plot_non_gap_counts(df_counts, title='Non-Gap Character Counts at Each Position', save=""):
+def plot_non_gap_counts(df_counts, title='Non-Gap Character Counts at Each Position', save="", logger=None):
     """
     Plots the counts of non-gap characters at each position and saves the plot based on the title.
 
@@ -20,7 +20,10 @@ def plot_non_gap_counts(df_counts, title='Non-Gap Character Counts at Each Posit
     
     # Save the plot to a file
     plt.savefig(save)
-    print(f"Plot saved as {save}")
+    if logger:
+        logger.info(f"Plot saved as {save}")
+    else:
+        print(f"Plot saved as {save}")
     
     # Close the plot to free up memory
     plt.close()

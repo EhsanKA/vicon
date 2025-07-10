@@ -71,7 +71,7 @@ def create_folders_and_save_sequences(fasta_file, new_address='a'):
 
 
 
-def remove_first_record(input_fasta, output_fasta):
+def remove_first_record(input_fasta, output_fasta, logger=None):
     """
     Removes the first record (header and sequence) from a FASTA file.
 
@@ -89,5 +89,8 @@ def remove_first_record(input_fasta, output_fasta):
         raise ValueError("The FASTA file must contain at least two records to remove the first one.")
     
     # Write the remaining records to the output FASTA file
-    SeqIO.write(records[1:], output_fasta, "fasta")
-    print(f"The first record has been removed. Updated FASTA saved to: {output_fasta}")
+    SeqIO.write(records[1:], output_fasta, "fasta",)
+    if logger:
+        logger.info(f"The first record has been removed. Updated FASTA saved to: {output_fasta}")
+    else:
+        print(f"The first record has been removed. Updated FASTA saved to: {output_fasta}")
