@@ -4,11 +4,17 @@ import itertools
 import numpy as np
 import pandas as pd
 import time
+import warnings
 from multiprocessing import Pool, cpu_count
 from collections import Counter
 
 def abundant_kmers(df):
     """Finds abundant kmers and the samples covering them."""
+    warnings.warn(
+        "abundant_kmers is deprecated and will be removed in a future version.",
+        DeprecationWarning,
+        stacklevel=2
+    )
     print("Finding abundant kmers...")
     data = df.copy()
     output = dict()
@@ -87,11 +93,11 @@ def find_most_frequent_and_calculate_mismatches(sequences):
                           for a, b in zip(seq, most_frequent) if a != b)
     return most_frequent, total_mismatches
 
-def get_i_th_kmers(fasta_file, i, mask, window_size=150):
-    df = read_fasta_to_dataframe(fasta_file)
-    df = df.iloc[mask[:, i].astype(bool)] 
-    df['kmer'] = df['Sequence'].str.slice(i, i + window_size)
-    return df['kmer'].values, df['ID'].values
+def get_i_th_kmers(df, i, mask, window_size=150):
+    # df = read_fasta_to_dataframe(fasta_file)
+    df_new = df.iloc[mask[:, i].astype(bool)].copy()
+    df_new.loc[:, 'kmer'] = df_new['Sequence'].str.slice(i, i + window_size)
+    return df_new['kmer'].values, df_new['ID'].values
 
 def count_sequences_with_max_mismatches(sequences, ids, most_frequent, max_mismatches=3):
     """Counts sequences with <= max_mismatches compared to most_frequent."""
@@ -104,16 +110,16 @@ def count_sequences_with_max_mismatches(sequences, ids, most_frequent, max_misma
             seq_indices.append(i)
     return count, seq_indices
 
-def count_seq_coverage(kmer_index, fasta_file, mask, window_size=150):
-    seqs, ids = get_i_th_kmers(fasta_file, kmer_index, mask, window_size)
+def count_seq_coverage(kmer_index, df, mask, window_size=150):
+    seqs, ids = get_i_th_kmers(df, kmer_index, mask, window_size)
     most_freq, min_value = find_most_frequent_and_calculate_mismatches(seqs)
     coverage, seq_indices = count_sequences_with_max_mismatches(seqs, ids, most_freq, 3)
     return coverage, seq_indices, min_value
 
 def process_kmer_column(args):
     """Process single kmer column in parallel."""
-    c, fasta_file, mask, window_size = args
-    coverage, seq_indices, min_value = count_seq_coverage(c, fasta_file, mask, window_size)
+    c, df, mask, window_size = args
+    coverage, seq_indices, min_value = count_seq_coverage(c, df, mask, window_size)
     return (c, {'coverage': coverage, 'indices': seq_indices, 'mismatches': min_value})
 
 def process_coverage_chunk(args):
@@ -153,8 +159,9 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatch
         print(f"Using {n_processes} processes")
 
     # Parallel process kmer_dict
+    df = read_fasta_to_dataframe(fasta_file)
     with Pool(n_processes) as pool:
-        args = [(c, fasta_file, mask, window_size) for c in ldf.columns]
+        args = [(c, df, mask, window_size) for c in ldf.columns]
         results = pool.map(process_kmer_column, args)
     
     kmer_dict = dict(results)
@@ -184,7 +191,7 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatch
     print(f"Coverage matrix computed in {time.time()-start_time:.2f}s")
     
     # Get all pairs and their unique coverage
-    pair_indices = [(i, j) for i in range(n) for j in range(i, n)]
+    pair_indices = [(i, j) for i in range(n) for j in range(i+1, n)]
     data = []
     for i, j in pair_indices:
         unique_cov = int(cov[i, j])
@@ -202,27 +209,30 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatch
     df_best['sum_mism'] = df_best['mism1'] + df_best['mism2']
 
     # Sort by unique coverage first, then sum_cov, then mismatches
-    df_best = df_best.sort_values(['unique_cov', 'sum_cov', 'sum_mism'], ascending=[False, False, True])
+    if sort_by_mismatches:
+        df_best = df_best.sort_values(['unique_cov', 'sum_cov', 'sum_mism'], ascending=[False, False, True])
+    else:
+        df_best = df_best.sort_values(['unique_cov', 'sum_cov'], ascending=[False, False])
 
-    # Take the top 1000 pairs
-    df_best = df_best.head(1000)
-
-    print(f"[INFO] Degenerate Kmer1 Coverage: {df_best.iloc[0]['cov1']}")
-    print(f"[INFO] Degenerate Kmer2 Coverage: {df_best.iloc[0]['cov2']}")
     # Calculate and print the actual number of unique samples covered by either kmer1 or kmer2
-    kmer1 = df_best.iloc[0]['kmer1']
-    kmer2 = df_best.iloc[0]['kmer2']
-    ids1 = set(kmer_dict[kmer1]['indices'])
-    ids2 = set(kmer_dict[kmer2]['indices'])
-    overall_covered = ids1 | ids2
+    kmer1, kmer2, cov1, cov2, mism1, mism2, unique_cov, sum_cov, sum_mism = df_best.iloc[0]
+
     total_samples = mask.shape[0] if hasattr(mask, 'shape') else len(ldf)
-    print(f"[INFO] Overall Degenerate Coverage (unique samples): {len(overall_covered)}")
+    
+    print(f"[INFO] Degenerate Kmer1 Coverage: {cov1}")
+    print(f"[INFO] Degenerate Kmer2 Coverage: {cov2}")
+    print(f"[INFO] Degenerate kmer1 and kmer2 Coverage (unique samples): {unique_cov}")
     print(f"[INFO] Total number of samples: {total_samples}")
     
     return df_best.iloc[0]['kmer1'], df_best.iloc[0]['kmer2']
 
 
 def select_best_kmers(fasta_file, mask, kmer_set, set2, window_size=150):
+    warnings.warn(
+        "select_best_kmers is deprecated and will be removed in a future version.",
+        DeprecationWarning,
+        stacklevel=2
+    )
 
     def find_min_mismatch_and_max_coverage(kmer_set, fasta_file, mask, window_size=150):
         min_kmer_set = 1e6
@@ -311,4 +321,3 @@ def find_kmer_position(df_ref, kmer_sequence, window_size=150):
             return i
     
     return None
-    

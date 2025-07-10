@@ -1,0 +1,17 @@
+project_path: ""
+virus_name: "chikv_test"
+
+input_sample: "data/chikv/chikv_4032/CHIKV_4032.fasta"
+input_reference: "data/chikv/reference/CHIKVRefSeq.fasta"
+
+email: "email@address.com"
+kmer_size: 150
+threshold: 147
+l_gene_start: -1
+l_gene_end: 17000
+coverage_ratio: 0.51
+
+min_year: 2020
+threshold_ratio: 0.01
+drop_old_samples: false
+drop_mischar_samples: true

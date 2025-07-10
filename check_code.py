@@ -1,11 +1,6 @@
-## How to run??
-#### python run_pipeline.py --config configs/config_rsva.yaml
-
-
 import os
 import shutil
 import pandas as pd
-import argparse
 
 from vicon.dereplication.derep import run_vsearch
 from vicon.alignment.ref_align import run_viralmsa
@@ -20,51 +15,20 @@ from vicon.utils.helpers import (
     process_fasta_file
 )
 
+# Set config file path directly for Jupyter compatibility
+config_path = "/fast/AG_Ohler/ekarimi/projects/vicon/configs/config_orov_s.yaml"
 
-def setup_alignment_directory(aligned_dir):
-    if os.path.exists(aligned_dir):
-        shutil.rmtree(aligned_dir)
-    # os.makedirs(aligned_dir)
-
-
-def extract_kmer_sequences(reference_path, kmer1, kmer2, kmer_size):
-    df_ref = read_fasta_to_dataframe(reference_path)
-    ref_seq = df_ref['Sequence'].values[0]
-    return ref_seq[kmer1:kmer1+kmer_size], ref_seq[kmer2:kmer2+kmer_size]
-
-def parse_args():
-    parser = argparse.ArgumentParser(description="Run the VICON pipeline.")
-    parser.add_argument(
-        "--config",
-        type=str,
-        default="config.yaml",
-        help="Path to the YAML config file (default: config.yaml)"
-    )
-    return parser.parse_args()
-
-
-def main():
-    args = parse_args()
-    config = load_config(args.config)
-
+# Load config
+def run_pipeline_jupyter(config_path):
+    config = load_config(config_path)
 
     # Paths and Constants
-    # base_path = os.path.join(config["project_path"], "vicon")
     base_path = config["project_path"]
     virus = config["virus_name"]
 
     input_sample = os.path.join(base_path, config["input_sample"])
     input_reference = os.path.join(base_path, config["input_reference"])
     output_dir = os.path.join(base_path, "results", virus)
-
-    # --- FASTA cleaning step: process and replace input files with cleaned versions ---
-    input_sample_upper = input_sample.replace('.fasta', '_upper.fasta')
-    input_reference_upper = input_reference.replace('.fasta', '_upper.fasta')
-    process_fasta_file(input_sample, input_sample_upper)
-    process_fasta_file(input_reference, input_reference_upper)
-    input_sample = input_sample_upper
-    input_reference = input_reference_upper
-    # -------------------------------------------------------------------------------
 
     sample_dir = os.path.dirname(input_sample)
     aligned_dir = os.path.join(sample_dir, "aligned")
@@ -85,7 +49,8 @@ def main():
     # Setup
     print(f"[INFO] Using base path: {base_path}")
     print(f"aligned_dir: {aligned_dir}")
-    setup_alignment_directory(aligned_dir)
+    if os.path.exists(aligned_dir):
+        shutil.rmtree(aligned_dir)
 
     # Dereplication and Alignment
     run_vsearch(input_sample, derep_fasta, clusters_uc)
@@ -115,11 +80,14 @@ def main():
         sort_by_mismatches=False, window_size=kmer_size
     )
 
-    # print(f"[INFO] Kmer1: {kmer1}, Kmer2: {kmer2}")
+    def extract_kmer_sequences(reference_path, kmer1, kmer2, kmer_size):
+        df_ref = read_fasta_to_dataframe(reference_path)
+        ref_seq = df_ref['Sequence'].values[0]
+        return ref_seq[kmer1:kmer1+kmer_size], ref_seq[kmer2:kmer2+kmer_size]
 
     kmer1_seq, kmer2_seq = extract_kmer_sequences(input_reference, kmer1, kmer2, kmer_size)
-    print(f"[INFO] Degenerate Kmer1 sequence (from reference) (position {kmer1})") #:\n{kmer1_seq}")
-    print(f"[INFO] Degenerate Kmer2 sequence (from reference) (position {kmer2})") #:\n{kmer2_seq}")
+    print(f"[INFO] Degenerate Kmer1 sequence (from reference) (position {kmer1}):\n{kmer1_seq}")
+    print(f"[INFO] Degenerate Kmer2 sequence (from reference) (position {kmer2}):\n{kmer2_seq}")
 
     # Clean results
     df_kmers1, df_kmers2, df_samples = pipeline_results_cleaner(
@@ -147,35 +115,27 @@ def main():
 
     # Filter by common kmers
     filtered_df, kmer1_most, kmer2_most, kmer1_count, kmer2_count = filter_by_most_common_kmers(df_samples)
-    print("*"*100)
-    print("output summary: [cleaned samples , native kmers] ")
-    print("*"*100)
-    print(f"[INFO] Native kmer1 sequence: \n {kmer1_most}")
-    print(f"[INFO] Native kmer2 sequence: \n {kmer2_most}")
+    print(f"[INFO] Native kmer1 sequence: {kmer1_most}")
     print(f"[INFO] Native Kmer1 count: {kmer1_count}")
+    print(f"[INFO] Native kmer2 sequence: {kmer2_most}")
     print(f"[INFO] Native Kmer2 count: {kmer2_count}")
     print(f"[INFO] Overall Native Coverage : {filtered_df.shape[0]} out of {df_samples.shape[0]}")
-
 
     # Calculate overall degenerate coverage using the binary matrix for cleaned samples
     if kmer1 in df3.columns and kmer2 in df3.columns:
         # Only keep rows (samples) present in both df3 and df_samples
-        common_idx = df3.index.intersection(df_samples['ID'])
+        common_idx = df3.index.intersection(df_samples.index)
         deg_df = df3.loc[common_idx, [kmer1, kmer2]]
         # For each sample, check if either kmer is present
         deg_covered = (deg_df.sum(axis=1) > 0).sum()
         # Print kmer1 and kmer2 sequences and their counts from df3 among cleaned samples
-        print("*"*100)
-        print("output summary: [cleaned samples , degenerate kmers] ")
-        print("*"*100)
-        print(f"[INFO] Cleaned Degenerate Kmer1 sequence (from reference): \n {kmer1_seq}")
-        print(f"[INFO] Cleaned Degenerate Kmer2 sequence (from reference): \n {kmer2_seq}")
+        print(f"[INFO] Cleaned Degenerate Kmer1 sequence (from reference): {kmer1_seq}")
         print(f"[INFO] Cleaned Degenerate Kmer1 count (from binary matrix): {deg_df[kmer1].sum()}")
+        print(f"[INFO] Cleaned Degenerate Kmer2 sequence (from reference): {kmer2_seq}")
         print(f"[INFO] Cleaned Degenerate Kmer2 count (from binary matrix): {deg_df[kmer2].sum()}")
         print(f"[INFO] Cleaned Overall Degenerate Coverage (from binary matrix): {deg_covered} out of {deg_df.shape[0]}")
     else:
         print("[WARN] kmer1 or kmer2 not found in df3 columns for degenerate coverage calculation.")
 
-
-if __name__ == "__main__":
-    main()
+# To run in Jupyter, just call:
+# run_pipeline_jupyter(config_path)

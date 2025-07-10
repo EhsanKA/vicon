@@ -231,22 +231,20 @@ from Bio.Seq import Seq
 def process_fasta_file(input_file, output_file):
     """
     Process a FASTA file:
-    - Header: cleaned and preserved as the only identifier
     - Sequence: uppercased, non-ATCG replaced with N
+    - Header: preserve the entire original header line
     """
     with open(output_file, "w") as out_handle:
         for record in SeqIO.parse(input_file, "fasta"):
-            # 1. Clean the full header and assign to .id
-            clean_header = record.description.replace(" ", "_").replace("-", "_").replace("|", "_")
-            record.id = clean_header
-            record.name = ""  # Clear to avoid duplication
-            record.description = ""  # Clear to avoid appending to header
-            
-            # 2. Clean the sequence
+            # Preserve the full header (including spaces)
+            record.id = record.description  # This keeps the full header after '>'
+            record.id = record.id.replace(" ", "_")
+            record.description = ""         # Prevents Biopython from appending description again
+
+            # Clean the sequence
             seq_str = ''.join(['N' if c.upper() not in 'ATCG' else c.upper() for c in str(record.seq)])
             record.seq = Seq(seq_str)
-            
-            # 3. Write to output file
+
             SeqIO.write(record, out_handle, "fasta")
 
 def filter_by_most_common_kmers(df):
