@@ -149,8 +149,7 @@ def main():
     ldf = crop_df(df3, l_gene_start, l_gene_end, coverage_ratio=coverage_ratio, logger=logger)
     kmer1, kmer2 = find_best_pair_kmer(
         ldf, derep_fasta_aln, mask3,
-        sort_by_mismatches=False, window_size=kmer_size,
-        sort_by_mismatches=sort_by_mismatches, logger=logger
+        sort_by_mismatches=sort_by_mismatches, window_size=kmer_size, logger=logger
     )
 
     kmer1_seq, kmer2_seq = extract_kmer_sequences(input_reference, kmer1, kmer2, kmer_size)
