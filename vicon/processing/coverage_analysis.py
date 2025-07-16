@@ -44,6 +44,26 @@ def crop_df(df, start, end, coverage_ratio=0.5, logger=None):
     else:
         print(f"DataFrame cropped to {ldf.shape[1]} columns with coverage above threshold.")
     
+    # Raise an exception if the cropped DataFrame has 0 or 1 columns
+    if ldf.shape[1] <= 1:
+        error_message = f"DataFrame cropped to {ldf.shape[1]} columns, which is insufficient for analysis."
+        if logger:
+            logger.error(error_message)
+        else:
+            print(f"[ERROR] {error_message}")
+        # Suggest adjustments to the user
+        suggestions = [
+            "Consider lowering the coverage_ratio parameter to include more columns.",
+            "Increase the tolerance by adjusting the threshold parameter.",
+            "Expand the gene region by modifying l_gene_start and l_gene_end.",
+        ]
+        for suggestion in suggestions:
+            if logger:
+                logger.info(f"[SUGGESTION] {suggestion}")
+            else:
+                print(f"[SUGGESTION] {suggestion}")
+        raise ValueError(error_message)
+    
     return ldf
 
 def limit_to_l_gene(df, start, end, logger=None):
@@ -225,7 +245,15 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatch
     else:
         df_best = df_best.sort_values(['unique_cov', 'sum_cov'], ascending=[False, False])
 
-    # Calculate and print the actual number of unique samples covered by either kmer1 or kmer2
+    # Check if df_best is empty
+    if df_best.empty:
+        if logger:
+            logger.warning("[WARN] No valid kmer pairs found in DataFrame.")
+        else:
+            print("[WARN] No valid kmer pairs found in DataFrame.")
+        return None, None
+
+    # Extract the best pair of kmers
     kmer1, kmer2, cov1, cov2, mism1, mism2, unique_cov, sum_cov, sum_mism = df_best.iloc[0]
 
     total_samples = mask.shape[0] if hasattr(mask, 'shape') else len(ldf)

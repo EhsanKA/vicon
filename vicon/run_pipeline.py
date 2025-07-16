@@ -85,6 +85,7 @@ def main():
     l_gene_start = config["l_gene_start"]
     l_gene_end = config["l_gene_end"]
     coverage_ratio = config["coverage_ratio"]
+    sort_by_mismatches = config["sort_by_mismatches"]
 
     # Define a logger
     logger = logging.getLogger('pipeline_logger')
@@ -102,6 +103,17 @@ def main():
 
     # Add the handler to the logger
     logger.addHandler(file_handler)
+
+    # Ensure the log file is created fresh for each run
+    if os.path.exists(log_file_path):
+        os.remove(log_file_path)
+    file_handler = logging.FileHandler(log_file_path)
+
+    # Log configuration parameters
+    logger.info("Pipeline Configuration Parameters:")
+    for key, value in config.items():
+        logger.info(f"{key}: {value}")
+
 
     # Pass logger to coverage_analysis
     from vicon.processing.coverage_analysis import crop_df, find_best_pair_kmer
@@ -137,7 +149,8 @@ def main():
     ldf = crop_df(df3, l_gene_start, l_gene_end, coverage_ratio=coverage_ratio, logger=logger)
     kmer1, kmer2 = find_best_pair_kmer(
         ldf, derep_fasta_aln, mask3,
-        sort_by_mismatches=False, window_size=kmer_size, logger=logger
+        sort_by_mismatches=False, window_size=kmer_size,
+        sort_by_mismatches=sort_by_mismatches, logger=logger
     )
 
     kmer1_seq, kmer2_seq = extract_kmer_sequences(input_reference, kmer1, kmer2, kmer_size)

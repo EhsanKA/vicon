@@ -10,6 +10,7 @@ threshold: 145
 l_gene_start: -1
 l_gene_end: 10000
 coverage_ratio: 0.6
+sort_by_mismatches: true
 
 min_year: 2020
 threshold_ratio: 0.01
