@@ -1,10 +1,18 @@
-# Input/Output paths
-input_dir: "path/to/your/input/directory"  # Directory containing your input files
-output_dir: "path/to/your/output/directory"  # Directory where results will be saved
+project_path: ""
+virus_name: "orov_s_test"
 
-# Pipeline parameters
-pipeline:
-  # Add your pipeline-specific parameters here
-  # For example:
-  min_quality: 30
-  threads: 4 
+input_sample: "data/orov/orov_s/samples/OROV-S.fasta"
+input_reference: "data/orov/orov_s/reference/RefseqOROV-S.fasta"
+
+email: "email@address.com"
+kmer_size: 150
+threshold: 145
+l_gene_start: -1
+l_gene_end: 10000
+coverage_ratio: 0.6
+sort_by_mismatches: true
+
+min_year: 2020
+threshold_ratio: 0.01
+drop_old_samples: false
+drop_mischar_samples: true
