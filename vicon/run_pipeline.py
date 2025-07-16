@@ -108,6 +108,8 @@ def main():
     if os.path.exists(log_file_path):
         os.remove(log_file_path)
     file_handler = logging.FileHandler(log_file_path)
+    file_handler.setFormatter(formatter)  # Reapply formatter
+    logger.addHandler(file_handler)  # Re-add handler to logger
 
     # Log configuration parameters
     logger.info("Pipeline Configuration Parameters:")
@@ -225,9 +227,7 @@ def main():
         logger.info(f"[INFO] Cleaned Degenerate Kmer1 count (from binary matrix): {deg_df[kmer1].sum()}")
         logger.info(f"[INFO] Cleaned Degenerate Kmer2 count (from binary matrix): {deg_df[kmer2].sum()}")
         logger.info(f"[INFO] Cleaned Overall Degenerate Coverage (from binary matrix): {deg_covered} out of {deg_df.shape[0]}")
-        
-        logger.info(df_samples.columns)
-
+    
     #     # Generate remaining sequences FASTA file
     #     remaining_fasta_path = os.path.join(output_dir, "remaining_sequences.fasta")
     #     remaining_count = generate_remaining_fasta(
