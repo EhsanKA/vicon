@@ -1,0 +1,18 @@
+project_path: ""
+virus_name: "human_rota_as11_test"
+
+input_sample: "data/rotav/human_rota_as11/HumanRotaAS11.fasta"
+input_reference: "data/rotav/reference/ref_segment_6.fasta"
+
+email: "email@address.com"
+kmer_size: 150
+threshold: 145
+l_gene_start: -1
+l_gene_end: 10000
+coverage_ratio: 0.6
+sort_by_mismatches: true
+
+min_year: 2020
+threshold_ratio: 0.01
+drop_old_samples: false
+drop_mischar_samples: true

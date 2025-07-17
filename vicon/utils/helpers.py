@@ -245,6 +245,7 @@ def process_fasta_file(input_file, output_file):
             record.description = ""         # Prevents Biopython from appending description again
 
             # Clean the sequence
+            record.seq = record.seq.replace("\n", "")  # Remove any newlines
             seq_str = ''.join(['N' if c.upper() not in 'ATCG' else c.upper() for c in str(record.seq)])
             record.seq = Seq(seq_str)
 
