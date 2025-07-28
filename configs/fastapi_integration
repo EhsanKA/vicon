@@ -1,0 +1,27 @@
+vicon/
+├── vicon/                          # Main package
+│   ├── __init__.py
+│   ├── run_pipeline.py
+│   └── processing/
+├── web_app/                        # New web application
+│   ├── __init__.py
+│   ├── main.py                     # FastAPI application
+│   ├── models.py                   # Pydantic models
+│   ├── static/
+│   │   ├── css/
+│   │   │   └── style.css
+│   │   └── js/
+│   │       └── app.js
+│   ├── templates/
+│   │   └── index.html
+│   └── jobs/                       # Job storage directory
+├── configs/                        # Your existing configs
+├── data/                          # Your existing data
+├── requirements.txt               # Existing requirements
+├── requirements-web.txt           # Web-specific requirements
+├── Dockerfile                     # Container definition
+├── docker-compose.yml             # Multi-service setup
+├── nginx.conf                     # Reverse proxy config
+├── run_web.sh                     # Development runner
+├── deploy.sh                      # Production deployment
+└── README-web.md                  # Web interface documentation

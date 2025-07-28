@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  vicon-web:
+    build: .
+    container_name: vicon-web
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./web_app/jobs:/app/web_app/jobs
+      - ./data:/app/data:ro
+      - ./configs:/app/configs:ro
+    environment:
+      - ENVIRONMENT=production
+    depends_on:
+      - redis
+    networks:
+      - vicon-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: vicon-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - vicon-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: vicon-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - vicon-web
+    networks:
+      - vicon-network
+
+volumes:
+  redis_data:
+
+networks:
+  vicon-network:
+    driver: bridge
