@@ -1,12 +1,12 @@
 project_path: ""
-virus_name: "rsva_algo1_python"
+virus_name: "rsva_0_tol"
 
 input_sample: "data/rsva/samples/RSVA_1973-2023-10.fasta"
 input_reference: "data/rsva/reference/EPI_ISL_412866_RSVA_ref.fasta"
 
 email: "email@address.com"
 kmer_size: 150
-threshold: 147
+threshold: 150
 only_valid_kmers: true
 l_gene_start: 8000
 l_gene_end: 16000

@@ -1,0 +1,18 @@
+project_path: ""
+virus_name: "test_chikv_wa_only_with_wa_ref"
+
+input_sample: "data/chikv/chickv_wa_only/CHIKV_WA_only.fasta"
+input_reference: "data/chikv/chikv_wa_ref/CHIKV_WA_Refseq.fasta"
+
+email: "email@address.com"
+kmer_size: 150
+threshold: 140
+l_gene_start: -1
+l_gene_end: 17000
+coverage_ratio: 0.9615384615384616
+sort_by_mismatches: true
+
+min_year: 2020
+threshold_ratio: 0.01
+drop_old_samples: false
+drop_mischar_samples: true
