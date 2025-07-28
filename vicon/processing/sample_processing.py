@@ -23,6 +23,7 @@ def process_all_samples(reference_path,
         output_dir (str): Directory to save individual binary results.
         window_size (int): Size of the sliding window.
         threshold (int): Threshold for binary match results.
+        only_valid_kmers (bool): If True, applies validity mask to the results.
 
     Returns:
         pd.DataFrame: Aggregated binary results as a DataFrame.

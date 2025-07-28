@@ -5,24 +5,22 @@ def extract_year(id_string):
     """
     Extracts the year from the sequence ID.
     Handles multiple formats:
-    1. Year after pipe or underscore: |2021 or _2021
-    2. Year in date format: DD-MON-YYYY
-    3. Year at the end of string: ...2021
+    1. Year after pipe, underscore, slash, or dash: |2021, _2021, /2021, -2021
+    2. Any 4-digit year between 1850-2030 anywhere in the string
     """
-    # Try to find year after pipe or underscore
-    match = re.search(r'[|_](\d{4})\b', id_string)
+    # Try to find year after pipe, underscore, slash, or dash
+    match = re.search(r'[|_/\-](\d{4})\b', id_string)
     if match:
-        return int(match.group(1))
+        year = int(match.group(1))
+        if 1850 <= year <= 2030:
+            return year
     
-    # Try to find year in date format (DD-MON-YYYY)
-    match = re.search(r'\d{2}-[A-Z]{3}-(\d{4})', id_string)
-    if match:
-        return int(match.group(1))
-    
-    # Try to find year at the end of string
-    match = re.search(r'(\d{4})(?:;|$)', id_string)
-    if match:
-        return int(match.group(1))
+    # Try to find any 4-digit year between 1850-2030 anywhere in the string
+    matches = re.findall(r'\b(\d{4})\b', id_string)
+    for match in matches:
+        year = int(match)
+        if 1850 <= year <= 2030:
+            return year
     
     return None
 

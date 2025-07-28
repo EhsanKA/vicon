@@ -54,7 +54,7 @@ def main():
     config = load_config(args.config)
 
     # Paths and Constants
-    base_path = config["project_path"]
+    base_path = config.get("base_path", "")  
     virus = config["virus_name"]
 
     input_sample = os.path.join(base_path, config["input_sample"])
@@ -79,13 +79,19 @@ def main():
     kmer2_path = os.path.join(output_dir, "kmer2.csv")
     log_dir = os.path.join(output_dir, "logs")
 
-    email = config["email"]
-    kmer_size = config["kmer_size"]
-    threshold = config["threshold"]
-    l_gene_start = config["l_gene_start"]
-    l_gene_end = config["l_gene_end"]
-    coverage_ratio = config["coverage_ratio"]
-    sort_by_mismatches = config["sort_by_mismatches"]
+    email = config.get("email", "example@example.com")
+    kmer_size = config.get("kmer_size", 150)
+    threshold = config.get("threshold", 147)
+    only_valid_kmers = config.get("only_valid_kmers", True)
+    l_gene_start = config.get("l_gene_start", -1)
+    l_gene_end = config.get("l_gene_end", 40000)
+    coverage_ratio = config.get("coverage_ratio", 0.5)
+    sort_by_mismatches = config.get("sort_by_mismatches", True)
+    
+    drop_old_samples = config.get("drop_old_samples", False)
+    min_year = config.get("min_year", 2020)
+    threshold_ratio = config.get("threshold_ratio", 0.1)
+    drop_mischar_samples = config.get("drop_mischar_samples", True)
 
     # Define a logger
     logger = logging.getLogger('pipeline_logger')
@@ -141,9 +147,11 @@ def main():
     # Process Samples
     df3, mask3 = process_all_samples(
         input_reference, derep_fasta_aln, log_dir,
-        window_size=kmer_size, threshold=threshold, only_valid_kmers=True
+        window_size=kmer_size, threshold=threshold, only_valid_kmers=only_valid_kmers
     )
     df3.columns = df3.columns.astype(int)
+
+    print(f"max kmer present in the samples at the position: {df3.sum(axis=0).idxmax()}, max count is: {df3.sum(axis=0).max()}")
 
     plot_rel_cons(df3, kmer_size=kmer_size, threshold=kmer_size-threshold, save_path=output_dir, sample_name=virus)
 
@@ -163,11 +171,11 @@ def main():
         sample_address=derep_fasta_aln,
         kmer1=kmer1,
         kmer2=kmer2,
-        drop_old_samples=config["drop_old_samples"],
+        drop_old_samples=drop_old_samples,
         kmer_size=kmer_size,
-        min_year=config["min_year"],
-        threshold_ratio=config["threshold_ratio"],
-        drop_mischar_samples=config["drop_mischar_samples"],
+        min_year=min_year,
+        threshold_ratio=threshold_ratio,
+        drop_mischar_samples=drop_mischar_samples,
         logger=logger
     )
 

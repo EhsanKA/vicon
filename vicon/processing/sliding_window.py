@@ -42,7 +42,7 @@ def sliding_window_matches(seq1, seq2, window_size=150, threshold=145):
         match_counts.append(current_match_count)
 
     # Convert match counts to binary results based on the threshold
-    binary_result = (np.array(match_counts) > threshold).astype(np.uint8)
+    binary_result = (np.array(match_counts) >= threshold).astype(np.uint8)
     return binary_result
 
 

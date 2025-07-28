@@ -117,21 +117,31 @@ drop_mischar_samples: true
 
 ### FASTA Header Year Extraction: Supported Formats
 
-The pipeline will extract the year from your FASTA headers if they match one of these patterns:
+The pipeline automatically extracts years from FASTA headers using a two-step approach:
 
-| Header Example           | Year Extracted? | Extracted Year | Reason                |
-|-------------------------|:--------------:|:--------------:|-----------------------|
-| `>sample|2021`           | Yes            | 2021           | After pipe            |
-| `>sample_2020`           | Yes            | 2020           | After underscore      |
-| `>sample|15-JAN-2019`    | Yes            | 2019           | Date format           |
-| `>sample_23-DEC-2022`    | Yes            | 2022           | Date format           |
-| `>sample_ABC2021`        | Yes            | 2021           | Ends with 4 digits    |
-| `>sample_2024_04_15`     | Yes            | 2024           | First _YYYY           |
-| `>sample|2024_04_15`     | Yes            | 2024           | First |YYYY            |
-| `>sample2021extra`       | No             | -              | Not at end/after sep  |
-| `>sample|202`            | No             | -              | Not 4 digits          |
+1. **Priority extraction**: Years following separators (`|`, `_`, `/`, `-`)
+2. **Fallback extraction**: Any standalone 4-digit number between 1850-2030
 
-> **Tip:** For best results, use `|YYYY` or `_YYYY` at the end of your FASTA header.
+| Header Example           | Year Extracted? | Extracted Year | Reason                          |
+|-------------------------|:--------------:|:--------------:|---------------------------------|
+| `>sample|2021`           | ✅ Yes          | 2021           | After pipe separator            |
+| `>sample_2020`           | ✅ Yes          | 2020           | After underscore separator      |
+| `>sample/2019/data`      | ✅ Yes          | 2019           | After slash separator           |
+| `>sample-2022-final`     | ✅ Yes          | 2022           | After dash separator            |
+| `>data 2021 sequence`    | ✅ Yes          | 2021           | Standalone 4-digit number       |
+| `>sample.2020.version`   | ✅ Yes          | 2020           | Standalone 4-digit number       |
+| `>test2021extra`         | ✅ Yes          | 2021           | Standalone 4-digit number       |
+| `>sample|202`            | ❌ No           | -              | Not 4 digits                    |
+| `>sample_1800_old`       | ❌ No           | -              | Outside valid range (1850-2030) |
+| `>sample20213long`       | ❌ No           | -              | 5 consecutive digits            |
+
+**Algorithm Details:**
+- **Step 1**: Searches for years immediately following separators (`|`, `_`, `/`, `-`)
+- **Step 2**: If no separator-based year found, searches for any standalone 4-digit number
+- **Validation**: All extracted years must be between 1850-2030
+- **Word boundaries**: Ensures 4-digit numbers are standalone (letter→digit or digit→letter transitions count as word boundaries)
+
+> **Best Practice:** Use `|YYYY`, `_YYYY`, `/YYYY`, or `-YYYY` patterns for reliable year extraction.
 
 ## License
 This project is licensed under the terms of the MIT license.

@@ -121,8 +121,20 @@ def find_most_frequent_and_calculate_mismatches(sequences):
     return most_frequent, total_mismatches
 
 def get_i_th_kmers(df, i, mask, window_size=150):
+    """Extracts the i-th kmer from each sequence in the DataFrame.
+    Args:
+        df (pd.DataFrame): DataFrame containing sequences.
+        i (int): Index of the kmer to extract.
+        mask (np.ndarray or similar): Mask to apply during extraction.
+        window_size (int): Size of the kmer to extract.
+    Returns:
+        tuple: A tuple containing the extracted kmers and their corresponding IDs."""
+
     # df = read_fasta_to_dataframe(fasta_file)
-    df_new = df.iloc[mask[:, i].astype(bool)].copy()
+    if mask is not None:
+        df_new = df.iloc[mask[:, i].astype(bool)].copy()
+    else:
+        df_new = df.copy()
     df_new.loc[:, 'kmer'] = df_new['Sequence'].str.slice(i, i + window_size)
     return df_new['kmer'].values, df_new['ID'].values
 
@@ -196,7 +208,11 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatch
     
     kmer_dict = dict(results)
 
-    logger.info(f"Kmer dict computed in {time.time()-start_time:.2f}s")
+    
+    if logger:
+        logger.info(f"Kmer dict computed in {time.time()-start_time:.2f}s")
+    else:
+        print(f"Kmer dict computed in {time.time()-start_time:.2f}s")
     
     # Extract just the indices for parallel processing
     kmer_indices = {k: v['indices'] for k, v in kmer_dict.items()}
@@ -218,9 +234,12 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatch
     for chunk_results in results:
         for i, j, value in chunk_results:
             cov[i, j] = value
-    
-    logger.info(f"Coverage matrix computed in {time.time()-start_time:.2f}s")
-    
+
+    if logger:
+        logger.info(f"Coverage matrix computed in {time.time()-start_time:.2f}s")
+    else:
+        print(f"Coverage matrix computed in {time.time()-start_time:.2f}s")
+
     # Get all pairs and their unique coverage
     pair_indices = [(i, j) for i in range(n) for j in range(i+1, n)]
     data = []
@@ -257,11 +276,16 @@ def find_best_pair_kmer(ldf, fasta_file, mask, window_size=150, sort_by_mismatch
     kmer1, kmer2, cov1, cov2, mism1, mism2, unique_cov, sum_cov, sum_mism = df_best.iloc[0]
 
     total_samples = mask.shape[0] if hasattr(mask, 'shape') else len(ldf)
-    
-    logger.info(f"[INFO] Degenerate Kmer1 Coverage: {cov1}")
-    logger.info(f"[INFO] Degenerate Kmer2 Coverage: {cov2}")
-    logger.info(f"[INFO] Degenerate kmer1 and kmer2 Coverage (unique samples): {unique_cov}")
-    logger.info(f"[INFO] Total number of samples: {total_samples}")
+    if logger:
+        logger.info(f"[INFO] Degenerate Kmer1 Coverage: {cov1}")
+        logger.info(f"[INFO] Degenerate Kmer2 Coverage: {cov2}")
+        logger.info(f"[INFO] Degenerate kmer1 and kmer2 Coverage (unique samples): {unique_cov}")
+        logger.info(f"[INFO] Total number of samples: {total_samples}")
+    else:
+        print(f"[INFO] Degenerate Kmer1 Coverage: {cov1}")
+        print(f"[INFO] Degenerate Kmer2 Coverage: {cov2}")
+        print(f"[INFO] Degenerate kmer1 and kmer2 Coverage (unique samples): {unique_cov}")
+        print(f"[INFO] Total number of samples: {total_samples}")
     
     return df_best.iloc[0]['kmer1'], df_best.iloc[0]['kmer2']
 
