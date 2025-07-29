@@ -1,6 +1,6 @@
 # VICON Installation and Usage Guide
 
-This guide explains how to install and run VICON version 1.0.2 using Conda, including setting up necessary permissions and executing the workflow with a sample configuration.
+This guide explains how to install and run VICON version 1.0.3 using Conda, including setting up necessary permissions and executing the workflow with a sample configuration.
 
 ## 1. Environment Activation
 
@@ -13,10 +13,10 @@ conda activate vicon
 
 ## 2. VICON Installation
 
-Install VICON version 1.0.2 along with its dependencies from the specified channels:
+Install VICON version 1.0.3 along with its dependencies from the specified channels:
 
 ```bash
-conda install -c conda-forge -c bioconda -c eka97 vicon=1.0.2 -y
+conda install -c conda-forge -c bioconda -c eka97 vicon=1.0.3 -y
 ```
 
 - **conda-forge** and **bioconda** provide bioinformatics packages.

@@ -1,0 +1,44 @@
+# Use a base image with Python installed
+FROM python:3.11-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the package files into the container
+COPY . /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    build-essential \
+    zlib1g-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Detect the host architecture and download the appropriate vsearch binary
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        wget https://github.com/torognes/vsearch/releases/download/v2.30.0/vsearch-2.30.0-linux-x86_64 -O /usr/local/bin/vsearch; \
+    elif [ "$ARCH" = "arm64" ]; then \
+        wget https://github.com/torognes/vsearch/releases/download/v2.30.0/vsearch-2.30.0-macos-arm64 -O /usr/local/bin/vsearch; \
+    else \
+        echo "Unsupported architecture: $ARCH" && exit 1; \
+    fi && \
+    chmod +x /usr/local/bin/vsearch
+
+# Install minimap2 binary
+RUN wget https://github.com/lh3/minimap2/releases/download/v2.24/minimap2-2.24_x64-linux.tar.bz2 -O minimap2.tar.bz2 && \
+    tar -xjf minimap2.tar.bz2 && \
+    mv minimap2-2.24_x64-linux/minimap2 /usr/local/bin/minimap2 && \
+    chmod +x /usr/local/bin/minimap2 && \
+    rm -rf minimap2.tar.bz2 minimap2-2.24_x64-linux
+
+# Install the Python package
+RUN pip install .
+
+# Ensure scripts are executable
+RUN chmod +x /usr/local/bin/vicon-run && \
+    chmod +x /usr/local/bin/viralmsa
+
+# Set the entry point (optional)
+ENTRYPOINT ["vicon-run"]
