@@ -1,0 +1,22 @@
+project_path: ""
+virus_name: "zikv_old_results"
+
+input_sample: "data/zikv/zikv_1993/gisaid_ZIKV__1903.fasta"
+input_reference: "data/zikv/reference/RefSeq_ZIKV.fasta"
+
+email: "email@address.com"
+kmer_size: 150
+threshold: 140
+only_valid_kmers: true
+l_gene_start: -1
+l_gene_end: 21000
+coverage_ratio: 0.474
+sort_by_mismatches: true
+
+min_year: 2020
+threshold_ratio: 0.01
+drop_old_samples: false
+drop_mischar_samples: true
+
+kmer1: 3076
+kmer2: 10464

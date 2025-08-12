@@ -60,6 +60,7 @@ def main():
     input_sample = os.path.join(base_path, config["input_sample"])
     input_reference = os.path.join(base_path, config["input_reference"])
     output_dir = os.path.join(base_path, "results", virus)
+    # output_dir = os.path.join(base_path, "results/reproduce_old_results", virus)
 
     # --- FASTA cleaning step: process and replace input files with cleaned versions ---
     input_sample_upper = input_sample.replace('.fasta', '_upper.fasta')
@@ -161,6 +162,7 @@ def main():
         ldf, derep_fasta_aln, mask3,
         sort_by_mismatches=sort_by_mismatches, window_size=kmer_size, logger=logger
     )
+    # kmer1, kmer2 = int(config['kmer1']), int(config['kmer2'])
 
     kmer1_seq, kmer2_seq = extract_kmer_sequences(input_reference, kmer1, kmer2, kmer_size)
     logger.info(f"[INFO] Degenerate Kmer1 sequence (from reference) (position {kmer1})")
