@@ -36,7 +36,6 @@ dependencies = [
 ]
 
 # Note: This package requires minimap2 (>=2.30) to be installed on the system
-# It can be installed via conda: conda install -c bioconda minimap2>=2.24
 
 [project.urls]
 Homepage = "https://github.com/EhsanKA/vicon"
