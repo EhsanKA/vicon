@@ -11,9 +11,53 @@ VICON is a Python package for processing and analyzing viral sequence data, with
 - Wrapper scripts for vsearch and viralmsa
 <!-- - Support for multiple input formats (FASTA, WIG) -->
 
-## Installation
+# Quick Install (pip)
 
-### Standard Installation
+`vicon` can be installed directly from [PyPI](https://pypi.org/project/vicon/).
+
+---
+
+## 1. Install external dependencies
+
+Before installing `vicon`, make sure you have the following tools installed and available in your `PATH`:
+
+- **minimap2**
+- **vsearch**
+- **ViralMSA**
+
+### Ubuntu / Debian
+
+```bash
+sudo apt-get update
+sudo apt-get install -y minimap2 vsearch
+```
+
+### macOS (Homebrew)
+
+```bash
+brew install minimap2 vsearch
+```
+
+### ViralMSA
+
+ViralMSA can be installed by downloading the script:
+
+```bash
+mkdir -p ~/bin && cd ~/bin
+wget "https://raw.githubusercontent.com/niemasd/ViralMSA/master/ViralMSA.py"
+chmod +x ViralMSA.py
+ln -sf "$PWD/ViralMSA.py" ~/.local/bin/viralmsa
+```
+
+## 2. Install vicon from PyPI
+
+```bash
+python -m pip install --upgrade pip
+pip install vicon
+```
+
+
+# Standard Installation
 
 1. Create and activate a conda environment:
    ```bash
