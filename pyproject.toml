@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vicon"
-version = "1.0.3"
+version = "1.0.4"
 description = "VICON - Viral Conserved Sequence Extraction Toolkit"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.7"
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -54,7 +54,8 @@ packages = [
     "vicon.processing",
     "vicon.visualization",
     "vicon.io",
-    "vicon.utils"
+    "vicon.utils",
+    "vicon.scripts"
 ]
 include-package-data = true
 

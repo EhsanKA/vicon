@@ -1,0 +1,63 @@
+{% set name = "vicon" %}
+{% set version = "1.0.4" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: 358ff1ddd41e9173f00e86ad099c31b766304300c6a4789e1ecbed24d04494d1
+
+build:
+  noarch: python
+  number: 0
+  script: |
+    {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+    install -Dm755 vicon/scripts/ViralMSA.py $PREFIX/bin/viralmsa
+  entry_points:
+    - vicon-run = vicon.run_pipeline:main
+
+requirements:
+  host:
+    - python >=3.7
+    - pip
+    - setuptools >=61.0
+  run:
+    - python >=3.7
+    - numpy >=1.24
+    - pandas
+    - matplotlib-base
+    - biopython
+    - pyyaml
+    - minimap2 >=2.30
+    - vsearch
+
+test:
+  imports:
+    - vicon
+    - vicon.dereplication
+    - vicon.alignment
+    - vicon.processing
+    - vicon.visualization
+    - vicon.io
+    - vicon.utils
+  commands:
+    - vicon-run --help
+
+about:
+  home: https://github.com/EhsanKA/vicon
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  summary: "VICON - Viral Conserved Sequence Extraction Toolkit"
+  description: |
+    VICON is a Python package for processing and analyzing viral sequence data,
+    with specialized tools for viral genome coverage analysis and sequence alignment.
+  dev_url: https://github.com/EhsanKA/vicon
+  doc_url: https://github.com/EhsanKA/vicon#readme
+
+extra:
+  recipe-maintainers:
+    - EhsanKA
+

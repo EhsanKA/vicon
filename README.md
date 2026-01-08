@@ -6,42 +6,56 @@ VICON is a Python package for processing and analyzing viral sequence data, with
 
 - Viral sequence alignment and coverage analysis
 - K-mer analysis and sliding window coverage calculations
-<!-- - Support for segmented viral genomes (rotavirus, influenza, etc.) -->
 - Visualization tools for coverage plots
-- Wrapper scripts for vsearch and viralmsa
-<!-- - Support for multiple input formats (FASTA, WIG) -->
+- Wrapper scripts for vsearch and ViralMSA
 
-# Quick Install (pip)
+## Installation
 
-`vicon` can be installed directly from [PyPI](https://pypi.org/project/vicon/).
+### Option 1: Conda (Recommended)
 
----
+The easiest way to install VICON with all dependencies:
 
-## 1. Install external dependencies
+```bash
+# Create and activate a new environment
+conda create -n vicon python=3.11
+conda activate vicon
 
-Before installing `vicon`, make sure you have the following tools installed and available in your `PATH`:
+# Install VICON and all dependencies
+conda install -c conda-forge -c bioconda -c eka97 vicon
 
-- **minimap2**
-- **vsearch**
-- **ViralMSA**
+# Set required permissions
+chmod +x "$CONDA_PREFIX/bin/vicon-run"
+chmod +x "$CONDA_PREFIX/bin/viralmsa"
+chmod +x "$CONDA_PREFIX/bin/minimap2"
+```
 
-### Ubuntu / Debian
+### Option 2: PyPI (pip)
 
+Install from [PyPI](https://pypi.org/project/vicon/):
+
+```bash
+pip install vicon
+```
+
+> **Note:** When installing via pip, you must manually install these external dependencies:
+> - **minimap2** (≥2.30)
+> - **vsearch**
+> - **ViralMSA**
+
+#### Installing External Dependencies
+
+**Ubuntu / Debian:**
 ```bash
 sudo apt-get update
 sudo apt-get install -y minimap2 vsearch
 ```
 
-### macOS (Homebrew)
-
+**macOS (Homebrew):**
 ```bash
 brew install minimap2 vsearch
 ```
 
-### ViralMSA
-
-ViralMSA can be installed by downloading the script:
-
+**ViralMSA:**
 ```bash
 mkdir -p ~/bin && cd ~/bin
 wget "https://raw.githubusercontent.com/niemasd/ViralMSA/master/ViralMSA.py"
@@ -49,79 +63,9 @@ chmod +x ViralMSA.py
 ln -sf "$PWD/ViralMSA.py" ~/.local/bin/viralmsa
 ```
 
-## 2. Install vicon from PyPI
-
-```bash
-python -m pip install --upgrade pip
-pip install vicon
-```
-
-
-# Standard Installation
-
-1. Create and activate a conda environment:
-   ```bash
-   conda create -n vicon python=3.11
-   conda activate vicon
-   ```
-
-2. Install VICON and its dependencies:
-   ```bash
-   conda install -c conda-forge -c bioconda -c eka97 vicon
-   ```
-
-3. Set required permissions:
-   ```bash
-   chmod +x "$CONDA_PREFIX/bin/vicon-run"
-   chmod +x "$CONDA_PREFIX/bin/viralmsa"
-   chmod +x "$CONDA_PREFIX/bin/minimap2"
-   ```
-
-<!-- ### Development Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/EhsanKA/vicon.git
-   cd vicon
-   ```
-
-2. Create and activate a conda environment:
-   ```bash
-   conda env create -f environment.yaml
-   conda activate vicon
-   ```
-
-3. Dependencies:
-   - Depending on your os version, download the miniconda from:
-   ```
-   https://www.anaconda.com/docs/getting-started/miniconda/install#macos-linux-installation
-   ```
-   - Install vsearch:
-     ```bash
-     conda install -c bioconda vsearch -y
-     ```
-   - ViralMSA:
-      ```bash
-      mkdir -p scripts && cd scripts
-      wget "https://github.com/niemasd/ViralMSA/releases/latest/download/ViralMSA.py"
-      chmod a+x ViralMSA.py
-      cd ../
-      ```
-
-4. Install VICON in development mode:
-   ```bash
-   pip install -e .
-   ```
-
-5. Set required permissions:
-   ```bash
-   chmod +x "$CONDA_PREFIX/bin/vicon-run"
-   chmod +x "$CONDA_PREFIX/bin/viralmsa"
-   ``` -->
-
 ## Usage
 
-To run the VICON pipeline, use the following command:
+Run the VICON pipeline with:
 
 ```bash
 vicon-run --config path/to/your/config.yaml
@@ -130,17 +74,16 @@ vicon-run --config path/to/your/config.yaml
 ### Input FASTA Preprocessing
 
 > **Note:**  
-> When you run the pipeline, VICON will automatically preprocess your input FASTA files (both sample and reference) before any analysis.  
-> This step:
+> VICON automatically preprocesses your input FASTA files (both sample and reference) before analysis:
 > - Converts all sequences to uppercase
 > - Cleans and standardizes FASTA headers
 > - Replaces any non-ATCG characters in sequences with 'N'
 >
-> The cleaned files are used for all downstream analysis, so you do not need to manually edit or check your FASTA files for these issues.
+> You do not need to manually edit or check your FASTA files for these issues.
 
 ### Example Configuration
 
-Here's an example of what your configuration file (`config.yaml`) should look like:
+Create a configuration file (`config.yaml`):
 
 ```yaml
 project_path: "project_path"
@@ -149,7 +92,7 @@ input_sample: "data/orov/samples/samples.fasta"
 input_reference: "data/orov/reference/reference.fasta"
 email: "email@address.com"
 kmer_size: 150
-threshold: 147 # shows a tolerance of 150-147 =3 degenerations
+threshold: 147 # shows a tolerance of 150-147 = 3 degenerations
 l_gene_start: 8000
 l_gene_end: 16000
 coverage_ratio: 0.5
@@ -159,7 +102,7 @@ drop_old_samples: false
 drop_mischar_samples: true
 ```
 
-### FASTA Header Year Extraction: Supported Formats
+### FASTA Header Year Extraction
 
 The pipeline automatically extracts years from FASTA headers using a two-step approach:
 
@@ -179,13 +122,8 @@ The pipeline automatically extracts years from FASTA headers using a two-step ap
 | `>sample_1800_old`       | ❌ No           | -              | Outside valid range (1850-2030) |
 | `>sample20213long`       | ❌ No           | -              | 5 consecutive digits            |
 
-**Algorithm Details:**
-- **Step 1**: Searches for years immediately following separators (`|`, `_`, `/`, `-`)
-- **Step 2**: If no separator-based year found, searches for any standalone 4-digit number
-- **Validation**: All extracted years must be between 1850-2030
-- **Word boundaries**: Ensures 4-digit numbers are standalone (letter→digit or digit→letter transitions count as word boundaries)
-
 > **Best Practice:** Use `|YYYY`, `_YYYY`, `/YYYY`, or `-YYYY` patterns for reliable year extraction.
 
 ## License
+
 This project is licensed under the terms of the MIT license.
