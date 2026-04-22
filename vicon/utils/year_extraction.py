@@ -63,7 +63,7 @@ def filter_group_by_year(group, min_year=2020, threshold=100):
     
 #     return ''.join(bar)
 
-def simulate_year_bars(years, total_width=125, start_year=1900, end_year=2025):
+def simulate_year_bars(years, total_width=125, start_year=1900, end_year=2030):
     """
     Creates a string of dashes representing individual years within a given range.
 
@@ -71,7 +71,7 @@ def simulate_year_bars(years, total_width=125, start_year=1900, end_year=2025):
     - years: List of years.
     - total_width: Number of characters to represent the year range (default: 125).
     - start_year: Start of the year range (default: 1900).
-    - end_year: End of the year range (default: 2025).
+    - end_year: End of the year range (default: 2030).
 
     Returns:
     - bar: A string representing the years using dashes.
@@ -82,7 +82,7 @@ def simulate_year_bars(years, total_width=125, start_year=1900, end_year=2025):
     bar = [' ' for _ in range(total_width)]
     for year in years:
         if start_year <= year <= end_year:
-            pos = int(((year - start_year) / (end_year - start_year)) * total_width)
+            pos = int(((year - start_year) / (end_year - start_year)) * (total_width - 1))
             bar[pos] = '-'
     
     return ''.join(bar)
